@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	wxAppId     = "appid"
-	wxAppSecret = "appsecret"
+	wxAppId     = "wx91579c743ffe0d71"
+	wxAppSecret = "355d58755b0903fde1756cf842fef998"
 
-	wxOriId         = "oriid"
-	wxToken         = "token"
-	wxEncodedAESKey = "aeskey"
+	wxOriId         = "gh_f7cd4d03fd3b"
+	wxToken         = "feng"
+	wxEncodedAESKey = ""
 )
 
 var (
@@ -41,8 +41,8 @@ func textMsgHandler(ctx *core.Context) {
 
 	msg := request.GetText(ctx.MixedMsg)
 	resp := response.NewText(msg.FromUserName, msg.ToUserName, msg.CreateTime, msg.Content)
-	//ctx.RawResponse(resp) // 明文回复
-	ctx.AESResponse(resp, 0, "", nil) // aes密文回复
+	ctx.RawResponse(resp) // 明文回复
+	//ctx.AESResponse(resp, 0, "", nil) // aes密文回复
 }
 
 func defaultMsgHandler(ctx *core.Context) {
@@ -55,8 +55,8 @@ func menuClickEventHandler(ctx *core.Context) {
 
 	event := menu.GetClickEvent(ctx.MixedMsg)
 	resp := response.NewText(event.FromUserName, event.ToUserName, event.CreateTime, "收到 click 类型的事件")
-	//ctx.RawResponse(resp) // 明文回复
-	ctx.AESResponse(resp, 0, "", nil) // aes密文回复
+	ctx.RawResponse(resp) // 明文回复
+	// ctx.AESResponse(resp, 0, "", nil) // aes密文回复
 }
 
 func defaultEventHandler(ctx *core.Context) {
@@ -65,5 +65,5 @@ func defaultEventHandler(ctx *core.Context) {
 }
 
 func WeixinHandler(c *gin.Context) {
-	msgServer.ServerHTTP(c.Writer, c.Request, nil)
+	msgServer.ServeHTTP(c.Writer, c.Request, nil)
 }

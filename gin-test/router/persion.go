@@ -23,7 +23,6 @@ func InitRouter() *gin.Engine {
 
 	router.DELETE("/person/:id", DelPersonApi)
 
-	router.GET("/wenxin", WeixinHandler)
-
+	router.Any("/weixin",WeixinHandler)
 	return router
 }
