@@ -7,22 +7,15 @@ import (
 )
 
 func InitRouter() *gin.Engine {
-	// router := gin.Default()
-	router := gin.New()
-	router.Use(gin.Logger())
-	// router.Use(logger())
+	router := gin.Default()
 	router.GET("/", IndexApi)
+	//进入SEL，验证微信账号
+	router.GET("/persons", GetUserApi)
 
-	router.POST("/person", AddPersonApi)
+	router.Any("/weixin", WeixinHandler)
 
-	router.GET("/persons", GetPersonsApi)
+	router.GET("/page1", Page1Handler)
+	router.GET("/page2", Page2Handler)
 
-	router.GET("/person/:id", GetPersonApi)
-
-	router.PUT("/person/:id", ModPersonApi)
-
-	router.DELETE("/person/:id", DelPersonApi)
-
-	router.Any("/weixin",WeixinHandler)
 	return router
 }

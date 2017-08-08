@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	. "../models"
 
@@ -15,86 +14,39 @@ func IndexApi(c *gin.Context) {
 	c.String(http.StatusOK, "It works")
 }
 
-func AddPersonApi(c *gin.Context) {
-	firstName := c.Request.FormValue("first_name")
-	lastName := c.Request.FormValue("last_name")
+//登录判断，第一次登录插入客户信息
+func GetUserApi(c *gin.Context) {
+	cid := c.Param("id")
 
-	p := Person{FirstName: firstName, LastName: lastName}
+	p := User{Unionid: cid}
+	user, err := p.Get()
+	if err != nil {
+		p := User{Unionid: cid, Role: 0}
+		ra, err := p.Add()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		msg := fmt.Sprintf("insert successful %d", ra)
+		c.JSON(http.StatusOK, gin.H{
+			"msg": msg,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
+}
 
-	ra, err := p.AddPerson()
+//注册插入用户信息表
+func AddUserApi(c *gin.Context) {
+	cid := c.Param("id")
+	phone := c.Param("phone")
+	name := c.Param("name")
+	p := User{Unionid: cid, Phone_number: phone, Name: name}
+	ra, err := p.Insert()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	msg := fmt.Sprintf("insert successful %d", ra)
-	c.JSON(http.StatusOK, gin.H{
-		"msg": msg,
-	})
-}
-
-func GetPersonsApi(c *gin.Context) {
-	var p Person
-	persons, err := p.GetPersons()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"persons": persons,
-	})
-
-}
-
-func GetPersonApi(c *gin.Context) {
-	cid := c.Param("id")
-	id, err := strconv.Atoi(cid)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	p := Person{Id: id}
-	person, err := p.GetPerson()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"person": person,
-	})
-
-}
-
-func ModPersonApi(c *gin.Context) {
-	cid := c.Param("id")
-	id, err := strconv.Atoi(cid)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	p := Person{Id: id}
-	err = c.Bind(&p)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	ra, err := p.ModPerson()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	msg := fmt.Sprintf("Update person %d successful %d", p.Id, ra)
-	c.JSON(http.StatusOK, gin.H{
-		"msg": msg,
-	})
-}
-
-func DelPersonApi(c *gin.Context) {
-	cid := c.Param("id")
-	id, err := strconv.Atoi(cid)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	p := Person{Id: id}
-	ra, err := p.DelPerson()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	msg := fmt.Sprintf("Delete person %d successful %d", id, ra)
 	c.JSON(http.StatusOK, gin.H{
 		"msg": msg,
 	})
