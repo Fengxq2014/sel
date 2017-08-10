@@ -72,3 +72,23 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 	}
 }
+
+// AddUcAPI 用户儿童关联
+func AddUcAPI(c *gin.Context) {
+	cuid := c.Param("user_id")
+	ccid := c.Param("child_id")
+	cre := c.Param("relation")
+	p := User{Openid: cid}
+	user, err := p.GetUserByOpenid()
+	res := Result{}
+	if err != nil {
+		res.Res = 1
+		res.Msg = "没有该用户信息请登录！"
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = user
+	c.JSON(http.StatusOK, res)
+}

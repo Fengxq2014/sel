@@ -58,3 +58,44 @@ func (u *User) Update() (id int64, err error) {
 	id, err = rs.LastInsertId()
 	return
 }
+
+type Child struct {
+	Child_id   int `json:"child_id" form:"child_id"`
+	Name       int `json:"name" form:"name"`
+	Gender     int `json:"gender" form:"gender"`
+	Birth_date int `json:"birth_date" form:"birth_date"`
+}
+
+type Uc_relation struct {
+	Uc_relation_id int `json:"uc_relation_id" form:"uc_relation_id"`
+	User_id        int `json:"user_id" form:"user_id"`
+	Child_id       int `json:"child_id" form:"child_id"`
+	Relation       int `json:"relation" form:"relation"`
+}
+
+// InsertChild 插入儿童信息及儿童用户关联表
+func (c *Child) InsertChild(user_id, child_id, relation string) (err error) {
+	tx, err := db.SqlDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare("INSERT INTO child VALUES (?,?,?)")
+	stmt1, err := tx.Prepare("INSERT INTO uc_relation(user_id, child_id, relation) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close() // danger!
+	defer stmt1.Close()
+	_, err = stmt.Exec(c.Name, c.Gender, c.Birth_date)
+	_, err = stmt1.Exec(user_id, child_id, relation)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
