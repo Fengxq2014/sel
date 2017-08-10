@@ -75,10 +75,11 @@ func Login(c *gin.Context) {
 
 // AddUcAPI 用户儿童关联
 func AddUcAPI(c *gin.Context) {
-	cuid := c.Param("user_id")
-	ccid := c.Param("child_id")
-	cre := c.Param("relation")
-	p := User{Openid: cid}
+	// cuid := c.Param("user_id")
+	// ccid := c.Param("child_id")
+	// cre := c.Param("relation")
+	openid := c.Param("openid")
+	p := User{Openid: openid}
 	user, err := p.GetUserByOpenid()
 	res := Result{}
 	if err != nil {

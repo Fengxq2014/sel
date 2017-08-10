@@ -13,14 +13,12 @@ func InitRouter() *gin.Engine {
 	//进入SEL，验证微信账号
 	router.GET("/user/:openid", apis.QryUserAPI)
 	//进入SEL，登录
-	router.POST("/login/:openid/*telno/*name/*Unionid", apis.Login)
-	router.Any("/weixin", apis.WeixinHandler)
-	//微信授权
-	router.GET("/oauth", apis.Page1Handler)
+	router.POST("/login/:openid/:telno/:name/:Unionid", apis.Login)
 	router.GET("/oauth1", apis.Page2Handler)
 	//获取测评列表
-	router.GET("/oauth", apis.Page1Handler)
 	//添加家长儿童关系
 	router.GET("/oauth", apis.Page1Handler)
+	router.Any("/weixin", apis.WeixinHandler)
+	//微信授权
 	return router
 }
