@@ -11,9 +11,9 @@ type Uc_relation struct {
 	Relation       int `json:"relation" form:"relation"`
 }
 
-// Add 用户儿童关联表插入
-func (u *Uc_relation) Add() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO uc_relation(uc_relation_id, user_id, child_id,relation) VALUES (?, ?, ?,?)", u.Uc_relation_id, u.User_id, u.Child_id, u.Relation)
+// Insert 用户儿童关联表插入
+func (u *Uc_relation) Insert() (id int64, err error) {
+	rs, err := db.SqlDB.Exec("INSERT INTO uc_relation(user_id, child_id, relation) VALUES (?, ?, ?)", u.User_id, u.Child_id, u.Relation)
 
 	if err != nil {
 		return

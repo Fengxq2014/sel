@@ -1,13 +1,17 @@
 package apis
 
 import (
-	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/chanxuehong/rand"
 	"github.com/chanxuehong/session"
+	"github.com/chanxuehong/sid"
 
+	. "../models"
 	"github.com/chanxuehong/wechat.v2/mp/core"
 	"github.com/chanxuehong/wechat.v2/mp/menu"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/request"
@@ -25,7 +29,7 @@ const (
 	wxToken         = "feng"
 	wxEncodedAESKey = ""
 
-	oauth2RedirectURI = "http://17255r43z1.51mypc.cn/page2" // 填上自己的参数
+	oauth2RedirectURI = "http://17255r43z1.51mypc.cn/oauth1" // 填上自己的参数
 	oauth2Scope       = "snsapi_base"
 )
 
@@ -83,21 +87,21 @@ func WeixinHandler(c *gin.Context) {
 
 // 建立必要的 session, 然后跳转到授权页面
 func Page1Handler(c *gin.Context) {
-	// sid := sid.New()
-	// state := string(rand.NewHex())
+	sid := sid.New()
+	state := string(rand.NewHex())
 
-	// if err := sessionStorage.Add(sid, state); err != nil {
-	// 	io.WriteString(c.Writer, err.Error())
-	// 	log.Println(err)
-	// 	return
-	// }
+	if err := sessionStorage.Add(sid, state); err != nil {
+		io.WriteString(c.Writer, err.Error())
+		log.Println(err)
+		return
+	}
 
-	// cookie := http.Cookie{
-	// 	Name:     "sid",
-	// 	Value:    sid,
-	// 	HttpOnly: true,
-	// }
-	// http.SetCookie(c.Writer, &cookie)
+	cookie := http.Cookie{
+		Name:     "sid",
+		Value:    sid,
+		HttpOnly: true,
+	}
+	http.SetCookie(c.Writer, &cookie)
 
 	AuthCodeURL := mpoauth2.AuthCodeURL(wxAppId, oauth2RedirectURI, oauth2Scope, "")
 	log.Println("AuthCodeURL:", AuthCodeURL)
@@ -109,21 +113,21 @@ func Page1Handler(c *gin.Context) {
 func Page2Handler(c *gin.Context) {
 	log.Println(c.Request.RequestURI)
 
-	// cookie, err := c.Cookie("sid")
-	// if err != nil {
-	// 	io.WriteString(c.Writer, err.Error())
-	// 	log.Println(err)
-	// 	return
-	// }
+	cookie, err := c.Cookie("sid")
+	if err != nil {
+		io.WriteString(c.Writer, err.Error())
+		log.Println(err)
+		return
+	}
 
-	// session, err := sessionStorage.Get(cookie)
-	// if err != nil {
-	// 	io.WriteString(c.Writer, err.Error())
-	// 	log.Println(err)
-	// 	return
-	// }
+	session, err := sessionStorage.Get(cookie)
+	if err != nil {
+		io.WriteString(c.Writer, err.Error())
+		log.Println(err)
+		return
+	}
 
-	// savedState := session.(string) // 一般是要序列化的, 这里保存在内存所以可以这么做
+	savedState := session.(string) // 一般是要序列化的, 这里保存在内存所以可以这么做
 
 	code := c.Query("code")
 	if code == "" {
@@ -136,12 +140,12 @@ func Page2Handler(c *gin.Context) {
 		log.Println("state 参数为空")
 		return
 	}
-	// if savedState != queryState {
-	// 	str := fmt.Sprintf("state 不匹配, session 中的为 %q, url 传递过来的是 %q", savedState, queryState)
-	// 	io.WriteString(c.Writer, str)
-	// 	log.Println(str)
-	// 	return
-	// }
+	if savedState != queryState {
+		str := fmt.Sprintf("state 不匹配, session 中的为 %q, url 传递过来的是 %q", savedState, queryState)
+		io.WriteString(c.Writer, str)
+		log.Println(str)
+		return
+	}
 
 	oauth2Client := oauth2.Client{
 		Endpoint: oauth2Endpoint,
@@ -160,8 +164,23 @@ func Page2Handler(c *gin.Context) {
 		log.Println(err)
 		return
 	}
-
-	json.NewEncoder(c.Writer).Encode(userinfo)
-	log.Printf("userinfo: %+v\r\n", userinfo)
+	AuthCodeURL := ""
+	p := User{Openid: userinfo.OpenId}
+	usercookie := http.Cookie{
+		Name:     "openid",
+		Value:    userinfo.OpenId,
+		HttpOnly: true,
+		MaxAge:   int(time.Hour / time.Second),
+	}
+	http.SetCookie(c.Writer, &usercookie)
+	_, err = p.GetUserByOpenid()
+	if err != nil {
+		AuthCodeURL = "/login"
+	} else {
+		AuthCodeURL = "/list"
+	}
+	http.Redirect(c.Writer, c.Request, AuthCodeURL, http.StatusFound)
+	// json.NewEncoder(c.Writer).Encode(userinfo)
+	// log.Printf("userinfo: %+v\r\n", userinfo)
 	return
 }

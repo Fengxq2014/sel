@@ -1,5 +1,5 @@
 
-set GoDevWork="G:\git\sel\gin-test\"
+set GoDevWork="D:\SEL\gin-test\"
 
 echo "Build For Linux..."
 set GOOS=linux
