@@ -1,5 +1,5 @@
 
-set GoDevWork="D:\SEL\gin-test\"
+set GoDevWork=%cd%
 
 echo "Build For Linux..."
 set GOOS=linux
