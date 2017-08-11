@@ -6,12 +6,15 @@ import (
 
 	. "../models"
 
+	log "../tool"
 	"github.com/gin-gonic/gin"
 )
 
 // QryEvaluation 获取测评列表
 func QryEvaluation(c *gin.Context) {
-	caccess := c.Query("user_access")
+	logger := log.GetLogger()
+	logger.Println("ceshi")
+	caccess := c.Param("user_access")
 	id, err := strconv.Atoi(caccess)
 	p := Evaluation{User_access: id}
 	evaluation, err := p.GetEvaluation()
