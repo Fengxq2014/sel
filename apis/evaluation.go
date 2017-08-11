@@ -7,10 +7,13 @@ import (
 	. "../models"
 
 	"github.com/gin-gonic/gin"
+	log "../tool"
 )
 
 // QryUserAPI 查询用户信息
 func QryEvaluation(c *gin.Context) {
+	logger:=log.GetLogger()
+	logger.Println()
 	caccess := c.Param("user_access")
 	id, err := strconv.Atoi(caccess)
 	p := Evaluation{User_access: id}

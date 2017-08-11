@@ -17,7 +17,6 @@ func InitRouter() *gin.Engine {
 	myfile, _ := os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_RDWR, 066)
 	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
 	router := gin.Default()
-	router.Use(logger())
 	router.GET("/", apis.IndexApi)
 	//进入SEL，验证微信账号
 	router.GET("/user/:openid", apis.QryUserAPI)
