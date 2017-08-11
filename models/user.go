@@ -39,7 +39,7 @@ func (u *User) GetUserByPhone() (user User, err error) {
 
 // Insert 家长注册
 func (u *User) Insert() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO user(phone_number, unionid, name, role, openid) VALUES (?, ?, ?, ?, ?)", u.Phone_number, u.Unionid, u.Name, u.Role, u.Openid)
+	rs, err := db.SqlDB.Exec("INSERT INTO user(phone_number, unionid, name, role, openid) VALUES (?, ?, ?, ?, ?)", u.Phone_number, u.Unionid, u.Name, 0, u.Openid)
 
 	if err != nil {
 		return

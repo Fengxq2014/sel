@@ -2,14 +2,20 @@ package apis
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
 
 	. "../models"
-
+	log "../tool"
+	"github.com/Fengxq2014/aliyun_sms"
 	"github.com/gin-gonic/gin"
+	"github.com/goroom/rand"
+)
+
+var (
+	logger = log.GetLogger()
 )
 
 func IndexApi(c *gin.Context) {
@@ -36,20 +42,32 @@ func QryUserAPI(c *gin.Context) {
 
 // Login 登录判断
 func Login(c *gin.Context) {
+	res := Result{}
 	cid := c.Query("openid")
 	ctel := c.Query("telno")
 	cname := c.Query("name")
-	cunionid := c.Query("Unionid")
-
+	cunionid := c.Query("unionid")
+	number := c.Query("number")
+	session, err := sessionStorage.Get(ctel)
+	if err != nil {
+		io.WriteString(c.Writer, err.Error())
+		return
+	}
+	if session.(string) != number {
+		res.Res = 1
+		res.Msg = "验证码错误！"
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+		return
+	}
 	p := User{Phone_number: ctel}
-	_, err := p.GetUserByPhone()
-	res := Result{}
+	_, err = p.GetUserByPhone()
 	// 家长登录插入客户信息
 	if err != nil {
 		p := User{Unionid: cunionid, Role: 0, Name: cname, Openid: cid}
 		ra, err := p.Insert()
 		if err != nil {
-			log.Println(err)
+			logger.Println(err)
 		}
 		msg := fmt.Sprintf("insert successful %d", ra)
 		res.Res = 1
@@ -100,4 +118,42 @@ func AddUcAPI(c *gin.Context) {
 	res.Msg = ""
 	res.Data = ""
 	c.JSON(http.StatusOK, res)
+}
+
+// SendSMS 发送短信验证码
+func SendSMS(c *gin.Context) {
+	result := Result{Res: 1, Msg: "发送失败"}
+	telno := c.Query("telno")
+	if telno == "" {
+		result.Msg = "参数为空"
+		c.JSON(200, result)
+		return
+	}
+	aliyun_sms, err := aliyun_sms.NewAliyunSms("薄荷叶", "SMS_83955022", "LTAIfScyzpJdTAFi", "Kw5STaGOvayPhzGEr4nrsvzu4cKK0z")
+	if err != nil {
+		logger.Println(err)
+		result.Msg = err.Error()
+		c.JSON(200, result)
+		return
+	}
+	no := rand.String(4, rand.RST_NUMBER)
+	logger.Println("code:", no)
+	err = aliyun_sms.Send(telno, `{"number":"`+no+`"}`)
+	if err != nil {
+		logger.Println(err)
+		result.Msg = err.Error()
+		c.JSON(200, result)
+		return
+	}
+	err = sessionStorage.Add(telno, no)
+	if err != nil {
+		result.Msg = err.Error()
+		c.JSON(200, result)
+		return
+
+	}
+	result.Res = 0
+	result.Msg = "成功"
+	c.JSON(200, result)
+	return
 }
