@@ -37,8 +37,12 @@ type Question struct {
 }
 
 // GetQuestion 获取测评题目
-func (q *Question) GetQuestion() (question Question, err error) {
-	err = db.SqlDB.QueryRow("SELECT * FROM question where evaluation_id = ?", q.Evaluation_id).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content)
+func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err error) {
+	ue := User_evaluation{Evaluation_id: evaluation_id, User_id: user_id, Child_id: child_id}
+	if uee, err := ue.GetEvaluation(); err == nil {
+		question.Question_index = uee.Current_question_id
+	}
+	err = db.SqlDB.QueryRow("SELECT * FROM question where evaluation_id = ?", evaluation_id).Scan(&question.Question_id, &question.Evaluation_id, &question.Content)
 	if err != nil {
 		return question, err
 	}
@@ -63,6 +67,7 @@ type User_question struct {
 	Answer             string `json:"answer" form:"answer"`
 }
 
+// UpdateUserAnswer 上传答案
 func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int, Text_result, Report_result, Answer string) (err error) {
 	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id}
 	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer}
@@ -94,7 +99,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int,
 
 // GetEvaluation 获取用户测评表
 func (ue *User_evaluation) GetEvaluation() (evaluation User_evaluation, err error) {
-	err = db.SqlDB.QueryRow("SELECT User_evaluation_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id)
+	err = db.SqlDB.QueryRow("SELECT User_evaluation_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
 	if err != nil {
 		return evaluation, err
 	}
