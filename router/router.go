@@ -17,6 +17,7 @@ func InitRouter() *gin.Engine {
 	myfile, _ := os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_RDWR, 066)
 	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
 	router := gin.Default()
+	router.Use(handleErrors)
 	router.GET("/", apis.IndexApi)
 	//微信授权
 	router.GET("/oauth", apis.Page1Handler)
@@ -35,4 +36,16 @@ func InitRouter() *gin.Engine {
 	//获取验证码
 	router.GET("/sendcode", apis.SendSMS)
 	return router
+}
+
+func handleErrors(c *gin.Context) {
+	c.Next()
+	errorToPrint := c.Errors.Last()
+	if errorToPrint != nil {
+		c.JSON(200, gin.H{
+			"Res":  500,
+			"Msg":  errorToPrint.Error(),
+			"Data": nil,
+		})
+	}
 }

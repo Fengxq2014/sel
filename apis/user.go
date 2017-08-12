@@ -1,10 +1,9 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"strconv"
 	"time"
 
 	. "../models"
@@ -19,20 +18,35 @@ var (
 )
 
 func IndexApi(c *gin.Context) {
+	type param struct {
+		Uid string `form:"user_id"`
+		// cid  int       `form:"child_id"`
+		// re   int       `form:"relation"`
+		// ggid int       `form:"gender"`
+		T time.Time `form:"birth_date"`
+	}
+	var query param
+	if c.BindQuery(&query) == nil {
+		c.AbortWithError(200, errors.New("errorsss"))
+	}
+	res := Result{}
+	c.JSON(200, res)
 	c.String(http.StatusOK, "It works")
 }
 
 // QryUserAPI 查询用户信息
 func QryUserAPI(c *gin.Context) {
 	cid := c.Query("openid")
+	if cid == "" {
+		c.Error(errors.New("参数为空"))
+		return
+	}
 	p := User{Openid: cid}
 	user, err := p.GetUserByOpenid()
 	res := Result{}
 	if err != nil {
-		res.Res = 1
-		res.Msg = "没有该用户信息请登录！"
-		res.Data = nil
-		c.JSON(http.StatusOK, res)
+		c.Error(errors.New("没有该用户信息请登录！"))
+		return
 	}
 	res.Res = 0
 	res.Msg = ""
@@ -48,16 +62,17 @@ func Login(c *gin.Context) {
 	cname := c.Query("name")
 	cunionid := c.Query("unionid")
 	number := c.Query("number")
+	if cid == "" || ctel == "" || cname == "" || number == "" {
+		c.Error(errors.New("参数为空"))
+		return
+	}
 	session, err := sessionStorage.Get(ctel)
 	if err != nil {
-		io.WriteString(c.Writer, err.Error())
+		c.Error(err)
 		return
 	}
 	if session.(string) != number {
-		res.Res = 1
-		res.Msg = "验证码错误！"
-		res.Data = nil
-		c.JSON(http.StatusOK, res)
+		c.Error(errors.New("验证码错误！"))
 		return
 	}
 	p := User{Phone_number: ctel}
@@ -67,7 +82,8 @@ func Login(c *gin.Context) {
 		p := User{Unionid: cunionid, Role: 0, Name: cname, Openid: cid}
 		ra, err := p.Insert()
 		if err != nil {
-			logger.Println(err)
+			c.Error(err)
+			return
 		}
 		msg := fmt.Sprintf("insert successful %d", ra)
 		res.Res = 1
@@ -79,10 +95,7 @@ func Login(c *gin.Context) {
 		p := User{Unionid: cunionid, Phone_number: ctel, Openid: cid}
 		ra, err := p.Update()
 		if err != nil {
-			res.Res = 1
-			res.Msg = err.Error()
-			res.Data = nil
-			c.JSON(http.StatusOK, res)
+			c.Error(err)
 			return
 		}
 		msg := fmt.Sprintf("insert successful %d", ra)
@@ -95,24 +108,29 @@ func Login(c *gin.Context) {
 
 // AddUcAPI 用户儿童关联
 func AddUcAPI(c *gin.Context) {
-	cuid := c.Query("user_id")
-	uid, err := strconv.Atoi(cuid)
-	ccid := c.Query("child_id")
-	cid, err := strconv.Atoi(ccid)
-	cre := c.Query("relation")
-	re, err := strconv.Atoi(cre)
-	gid := c.Query("gender")
-	ggid, err := strconv.Atoi(gid)
-	name := c.Query("name")
-	bd := c.Query("birth_date")
-	t, _ := time.Parse("2006-01-02", bd)
-	err = InsertChild(uid, cid, re, ggid, name, t)
+	type param struct {
+		UID  int    `form:"user_id" binding:"required"`
+		Cid  int    `form:"child_id" binding:"required"`
+		Re   int    `form:"relation" binding:"required"`
+		Ggid int    `form:"gender" binding:"required"`
+		Name string `form:"name" binding:"required"`
+		T    string `form:"birth_date" binding:"required"`
+	}
+	var queryStr param
+	if c.BindQuery(&queryStr) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	t, err := time.Parse("2006-01-02", queryStr.T)
+	if err != nil {
+		c.Error(errors.New("时间错误"))
+		return
+	}
+	err = InsertChild(queryStr.UID, queryStr.Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
 	res := Result{}
 	if err != nil {
-		res.Res = 1
-		res.Msg = "没有该用户信息请登录！"
-		res.Data = nil
-		c.JSON(http.StatusOK, res)
+		c.Error(errors.New("没有该用户信息请登录！"))
+		return
 	}
 	res.Res = 0
 	res.Msg = ""
@@ -126,14 +144,14 @@ func SendSMS(c *gin.Context) {
 	telno := c.Query("telno")
 	if telno == "" {
 		result.Msg = "参数为空"
-		c.JSON(200, result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
 	aliyun_sms, err := aliyun_sms.NewAliyunSms("薄荷叶", "SMS_83955022", "LTAIfScyzpJdTAFi", "Kw5STaGOvayPhzGEr4nrsvzu4cKK0z")
 	if err != nil {
 		logger.Println(err)
 		result.Msg = err.Error()
-		c.JSON(200, result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
 	no := rand.String(4, rand.RST_NUMBER)
@@ -142,18 +160,18 @@ func SendSMS(c *gin.Context) {
 	if err != nil {
 		logger.Println(err)
 		result.Msg = err.Error()
-		c.JSON(200, result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
 	err = sessionStorage.Add(telno, no)
 	if err != nil {
 		result.Msg = err.Error()
-		c.JSON(200, result)
+		c.JSON(http.StatusOK, result)
 		return
 
 	}
 	result.Res = 0
 	result.Msg = "成功"
-	c.JSON(200, result)
+	c.JSON(http.StatusOK, result)
 	return
 }

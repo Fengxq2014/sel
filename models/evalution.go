@@ -21,12 +21,21 @@ type Evaluation struct {
 }
 
 // GetEvaluation 获取测评列表
-func (e *Evaluation) GetEvaluation() (evaluation Evaluation, err error) {
-	err = db.SqlDB.QueryRow("SELECT * FROM user where user_access = ?", e.User_access).Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
+func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
+	rows, err := db.SqlDB.Query("SELECT * FROM user where user_access = ?", e.User_access)
+	defer rows.Close()
 	if err != nil {
-		return evaluation, err
+		return nil, err
 	}
-	return evaluation, err
+	for rows.Next() {
+		var evaluation Evaluation
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
+		if err != nil {
+			return nil, err
+		}
+		evaluations = append(evaluations, evaluation)
+	}
+	return evaluations, err
 }
 
 type Question struct {
