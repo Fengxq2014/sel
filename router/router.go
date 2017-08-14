@@ -1,6 +1,10 @@
 package router
 
 import (
+	"errors"
+
+	"github.com/Fengxq2014/sel/tool"
+	// "time"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// InitRouter
+// InitRouter 初始化路由
 func InitRouter() *gin.Engine {
 	pwd, _ := os.Getwd()
 	s := filepath.Join(pwd, "log", "server.log")
@@ -19,6 +23,11 @@ func InitRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(handleErrors)
 	router.GET("/", apis.IndexApi)
+	// authorized := router.Group("/")
+	// authorized.Use(jwtAuth)
+	// {
+	// 	authorized.GET("login", apis.Login)
+	// }
 	//微信授权
 	router.GET("/oauth", apis.Page1Handler)
 	router.GET("/oauth1", apis.Page2Handler)
@@ -48,4 +57,15 @@ func handleErrors(c *gin.Context) {
 			"Data": nil,
 		})
 	}
+}
+
+func jwtAuth(c *gin.Context) {
+	jwt := c.GetHeader("token")
+	if jwt != "" {
+		if result := tool.JWTVal(jwt); result {
+			c.Next()
+		}
+	}
+	c.AbortWithError(200, errors.New("jwt error"))
+	return
 }

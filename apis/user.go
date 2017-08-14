@@ -6,15 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Fengxq2014/sel/models"
-	log "github.com/Fengxq2014/sel/tool"
+	"github.com/Fengxq2014/sel/tool"
+
 	"github.com/Fengxq2014/aliyun_sms"
+	"github.com/Fengxq2014/sel/models"
 	"github.com/gin-gonic/gin"
 	"github.com/goroom/rand"
-)
-
-var (
-	logger = log.GetLogger()
 )
 
 func IndexApi(c *gin.Context) {
@@ -25,6 +22,9 @@ func IndexApi(c *gin.Context) {
 		// ggid int       `form:"gender"`
 		T time.Time `form:"birth_date"`
 	}
+	jwt, _ := tool.NewJWT()
+	result := tool.JWTVal(jwt)
+	tool.Info(result)
 	var query param
 	if c.BindQuery(&query) == nil {
 		c.AbortWithError(200, errors.New("errorsss"))
@@ -149,16 +149,16 @@ func SendSMS(c *gin.Context) {
 	}
 	aliyun_sms, err := aliyun_sms.NewAliyunSms("薄荷叶", "SMS_83955022", "LTAIfScyzpJdTAFi", "Kw5STaGOvayPhzGEr4nrsvzu4cKK0z")
 	if err != nil {
-		logger.Println(err)
+		tool.Error(err)
 		result.Msg = err.Error()
 		c.JSON(http.StatusOK, result)
 		return
 	}
 	no := rand.String(4, rand.RST_NUMBER)
-	logger.Println("code:", no)
+	tool.Debug("code:", no)
 	err = aliyun_sms.Send(telno, `{"number":"`+no+`"}`)
 	if err != nil {
-		logger.Println(err)
+		tool.Error(err)
 		result.Msg = err.Error()
 		c.JSON(http.StatusOK, result)
 		return

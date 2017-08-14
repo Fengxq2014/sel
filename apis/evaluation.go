@@ -11,7 +11,11 @@ import (
 
 // QryEvaluation 获取测评列表
 func QryEvaluation(c *gin.Context) {
-	caccess := c.Param("user_access")
+	caccess := c.Query("user_access")
+	if caccess == "" {
+		c.Error(errors.New("参数为空"))
+		return
+	}
 	id, err := strconv.Atoi(caccess)
 	p := models.Evaluation{User_access: id}
 	evaluation, err := p.GetEvaluation()
