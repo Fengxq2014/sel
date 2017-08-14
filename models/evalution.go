@@ -23,10 +23,10 @@ type Evaluation struct {
 // GetEvaluation 获取测评列表
 func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
 	rows, err := db.SqlDB.Query("SELECT * FROM user where user_access = ?", e.User_access)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var evaluation Evaluation
 		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
@@ -36,6 +36,18 @@ func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
 		evaluations = append(evaluations, evaluation)
 	}
 	return evaluations, err
+}
+
+func (e *Evaluation) InsertEvaluation() (int64, error) {
+	rs, err := db.SqlDB.Exec("insert into evaluation(name,category,user_access,abstract,details,price,page_number,person_count,picture,sample_report) values(?,?,?,?,?,?,?,?,?,?)", e.Name, e.Category, e.User_access, e.Abstract, e.Details, e.Price, e.Page_number, e.Person_count, e.Picture, e.Sample_report)
+	if err != nil {
+		return 0, err
+	}
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 type Question struct {

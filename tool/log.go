@@ -31,7 +31,7 @@ func getFileName() string {
 }
 
 func writeLog(level string, v ...interface{}) {
-	myfile, _ := os.OpenFile(getFileName(), os.O_APPEND|os.O_CREATE|os.O_RDWR, 066)
+	myfile, _ := os.OpenFile(getFileName(), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	logger := log.New(io.MultiWriter(myfile, os.Stdout), level, log.Ldate|log.Ltime|log.Llongfile)
 	logger.Output(3, fmt.Sprintln(v))
 }

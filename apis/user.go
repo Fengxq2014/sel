@@ -22,9 +22,20 @@ func IndexApi(c *gin.Context) {
 		// ggid int       `form:"gender"`
 		T time.Time `form:"birth_date"`
 	}
-	jwt, _ := tool.NewJWT()
-	result := tool.JWTVal(jwt)
-	tool.Info(result)
+	eva := models.Evaluation{Name: "适应性行为测评",
+		Category:      "SEL能力评估",
+		User_access:   0,
+		Abstract:      "这是简介",
+		Details:       "这是详细说明",
+		Price:         0,
+		Page_number:   10,
+		Person_count:  50,
+		Picture:       "http://img4.imgtn.bdimg.com/it/u=2104185324,1359413794&fm=26&gp=0.jpg",
+		Sample_report: "/root/evaluation_report",
+	}
+	id, err := eva.InsertEvaluation()
+	tool.Debug(err)
+	tool.Debug(id)
 	var query param
 	if c.BindQuery(&query) == nil {
 		c.AbortWithError(200, errors.New("errorsss"))
