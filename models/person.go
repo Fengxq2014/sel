@@ -3,7 +3,7 @@ package models
 import (
 	"log"
 
-	db "../database"
+	db "github.com/Fengxq2014/sel/database"
 )
 
 type Person struct {

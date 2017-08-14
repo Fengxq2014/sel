@@ -11,7 +11,7 @@ import (
 	"github.com/chanxuehong/session"
 	"github.com/chanxuehong/sid"
 
-	. "../models"
+	"github.com/Fengxq2014/sel/models"
 	"github.com/chanxuehong/wechat.v2/mp/core"
 	"github.com/chanxuehong/wechat.v2/mp/menu"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/request"
@@ -165,7 +165,7 @@ func Page2Handler(c *gin.Context) {
 		return
 	}
 	AuthCodeURL := ""
-	p := User{Openid: userinfo.OpenId}
+	p := models.User{Openid: userinfo.OpenId}
 	usercookie := http.Cookie{
 		Name:     "openid",
 		Value:    userinfo.OpenId,

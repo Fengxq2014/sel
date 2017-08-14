@@ -1,13 +1,13 @@
 package main
 
 import (
-	. "./router"
+	"github.com/Fengxq2014/sel/router"
 
-	db "./database"
+	db "github.com/Fengxq2014/sel/database"
 )
 
 func main() {
 	defer db.SqlDB.Close()
-	router := InitRouter()
+	router := router.InitRouter()
 	router.Run(":8080")
 }

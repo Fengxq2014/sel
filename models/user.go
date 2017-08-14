@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	db "../database"
+	db "github.com/Fengxq2014/sel/database"
 )
 
 type User struct {
@@ -26,7 +26,8 @@ func (u *User) GetUserByOpenid() (user User, err error) {
 	return user, nil
 }
 
-// GetUserByPhone 通过微信微信身份标识获取客户信息
+// GetUserByPhone 通过微信微信身份标识获取客户信息.
+// user User struct
 func (u *User) GetUserByPhone() (user User, err error) {
 	err = db.SqlDB.QueryRow("SELECT * FROM user where phone_number=?", u.Phone_number).Scan(&user.User_id, &user.Phone_number, &user.Unionid, &user.Name, &user.Role, &user.Openid)
 

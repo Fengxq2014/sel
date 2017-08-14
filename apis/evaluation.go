@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	. "../models"
+	"github.com/Fengxq2014/sel/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,9 +13,9 @@ import (
 func QryEvaluation(c *gin.Context) {
 	caccess := c.Param("user_access")
 	id, err := strconv.Atoi(caccess)
-	p := Evaluation{User_access: id}
+	p := models.Evaluation{User_access: id}
 	evaluation, err := p.GetEvaluation()
-	res := Result{}
+	res := models.Result{}
 	if err != nil {
 		c.Error(errors.New("没有找到相关信息"))
 		return
@@ -38,8 +38,8 @@ func QryQuestion(c *gin.Context) {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	evaluation, err := GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
-	res := Result{}
+	evaluation, err := models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
+	res := models.Result{}
 	if err != nil {
 		res.Res = 1
 		res.Msg = "获取题目失败"
@@ -69,8 +69,8 @@ func UpAnswer(c *gin.Context) {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	err := UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.Tr, queryStr.Rr, queryStr.Answer)
-	res := Result{}
+	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.Tr, queryStr.Rr, queryStr.Answer)
+	res := models.Result{}
 	if err != nil {
 		res.Res = 1
 		res.Msg = "更新答案错误"

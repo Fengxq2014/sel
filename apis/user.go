@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	. "../models"
-	log "../tool"
+	"github.com/Fengxq2014/sel/models"
+	log "github.com/Fengxq2014/sel/tool"
 	"github.com/Fengxq2014/aliyun_sms"
 	"github.com/gin-gonic/gin"
 	"github.com/goroom/rand"
@@ -29,7 +29,7 @@ func IndexApi(c *gin.Context) {
 	if c.BindQuery(&query) == nil {
 		c.AbortWithError(200, errors.New("errorsss"))
 	}
-	res := Result{}
+	res := models.Result{}
 	c.JSON(200, res)
 	c.String(http.StatusOK, "It works")
 }
@@ -41,9 +41,9 @@ func QryUserAPI(c *gin.Context) {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	p := User{Openid: cid}
+	p := models.User{Openid: cid}
 	user, err := p.GetUserByOpenid()
-	res := Result{}
+	res := models.Result{}
 	if err != nil {
 		c.Error(errors.New("没有该用户信息请登录！"))
 		return
@@ -54,9 +54,9 @@ func QryUserAPI(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// Login 登录判断
+// Login 登录判断.
 func Login(c *gin.Context) {
-	res := Result{}
+	res := models.Result{}
 	cid := c.Query("openid")
 	ctel := c.Query("telno")
 	cname := c.Query("name")
@@ -75,11 +75,11 @@ func Login(c *gin.Context) {
 		c.Error(errors.New("验证码错误！"))
 		return
 	}
-	p := User{Phone_number: ctel}
+	p := models.User{Phone_number: ctel}
 	_, err = p.GetUserByPhone()
 	// 家长登录插入客户信息
 	if err != nil {
-		p := User{Unionid: cunionid, Role: 0, Name: cname, Openid: cid}
+		p := models.User{Unionid: cunionid, Role: 0, Name: cname, Openid: cid}
 		ra, err := p.Insert()
 		if err != nil {
 			c.Error(err)
@@ -92,7 +92,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 	} else {
 		// 老师登录插入微信标识
-		p := User{Unionid: cunionid, Phone_number: ctel, Openid: cid}
+		p := models.User{Unionid: cunionid, Phone_number: ctel, Openid: cid}
 		ra, err := p.Update()
 		if err != nil {
 			c.Error(err)
@@ -126,8 +126,8 @@ func AddUcAPI(c *gin.Context) {
 		c.Error(errors.New("时间错误"))
 		return
 	}
-	err = InsertChild(queryStr.UID, queryStr.Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
-	res := Result{}
+	err = models.InsertChild(queryStr.UID, queryStr.Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
+	res := models.Result{}
 	if err != nil {
 		c.Error(errors.New("没有该用户信息请登录！"))
 		return
@@ -140,7 +140,7 @@ func AddUcAPI(c *gin.Context) {
 
 // SendSMS 发送短信验证码
 func SendSMS(c *gin.Context) {
-	result := Result{Res: 1, Msg: "发送失败"}
+	result := models.Result{Res: 1, Msg: "发送失败"}
 	telno := c.Query("telno")
 	if telno == "" {
 		result.Msg = "参数为空"

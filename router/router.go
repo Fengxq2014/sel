@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"../apis"
+	"github.com/Fengxq2014/sel/apis"
 
 	"github.com/gin-gonic/gin"
 )
