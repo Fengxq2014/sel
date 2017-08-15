@@ -11,6 +11,7 @@ import (
 	"github.com/chanxuehong/session"
 	"github.com/chanxuehong/sid"
 
+	"github.com/Fengxq2014/sel/conf"
 	"github.com/Fengxq2014/sel/models"
 	"github.com/chanxuehong/wechat.v2/mp/core"
 	"github.com/chanxuehong/wechat.v2/mp/menu"
@@ -21,19 +22,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	wxAppId     = "wx91579c743ffe0d71"
-	wxAppSecret = "355d58755b0903fde1756cf842fef998"
-
-	wxOriId         = "gh_f7cd4d03fd3b"
-	wxToken         = "feng"
-	wxEncodedAESKey = ""
-
-	oauth2RedirectURI = "http://17255r43z1.51mypc.cn/oauth1" // 填上自己的参数
-	oauth2Scope       = "snsapi_base"
-)
-
 var (
+	wxAppId           = conf.Config.WXAppID
+	wxAppSecret       = conf.Config.WXAppSecret
+	wxOriId           = conf.Config.WXOriID
+	wxToken           = conf.Config.WXToken
+	wxEncodedAESKey   = ""
+	oauth2RedirectURI = conf.Config.Oauth2RedirectURI
+	oauth2Scope       = "snsapi_base"
 	// 下面两个变量不一定非要作为全局变量, 根据自己的场景来选择.
 	msgHandler core.Handler
 	msgServer  *core.Server

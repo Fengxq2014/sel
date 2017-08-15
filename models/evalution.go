@@ -22,7 +22,7 @@ type Evaluation struct {
 
 // GetEvaluation 获取测评列表
 func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT * FROM user where user_access = ?", e.User_access)
+	rows, err := db.SqlDB.Query("SELECT * FROM evaluation where user_access = ?", e.User_access)
 	if err != nil {
 		return nil, err
 	}
@@ -129,10 +129,10 @@ func (ue *User_evaluation) GetEvaluation() (evaluation User_evaluation, err erro
 
 func (ue *User_evaluation) UpdateEvaluation() (err error) {
 	stmt, err := db.SqlDB.Prepare("update user_evaluation set current_question_id=?,text_result=?,report_result=?")
-	defer stmt.Close()
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 	rs, err := stmt.Exec(ue.Current_question_id, ue.Text_result, ue.Report_result)
 	if err != nil {
 		return err

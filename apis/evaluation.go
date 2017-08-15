@@ -9,25 +9,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type evaluationContain struct {
+	Category    string              `json:"category"`
+	Evaluations []models.Evaluation `json:"data"`
+}
+
 // QryEvaluation 获取测评列表
 func QryEvaluation(c *gin.Context) {
+	list := []evaluationContain{}
 	caccess := c.Query("user_access")
 	if caccess == "" {
 		c.Error(errors.New("参数为空"))
 		return
 	}
 	id, err := strconv.Atoi(caccess)
-	p := models.Evaluation{User_access: id}
-	evaluation, err := p.GetEvaluation()
-	res := models.Result{}
 	if err != nil {
-		c.Error(errors.New("没有找到相关信息"))
+		c.Error(errors.New("参数不合法"))
 		return
 	}
-	res.Res = 0
-	res.Msg = ""
-	res.Data = evaluation
-	c.JSON(http.StatusOK, res)
+	p := models.Evaluation{User_access: id}
+	evaluation, err := p.GetEvaluation()
+	if err != nil {
+		c.Error(errors.New("查询有误"))
+		return
+	}
+	if len(evaluation) > 0 {
+		for _, value := range evaluation {
+			index := checkExistCategory(&list, value.Category)
+			if index > -1 {
+				list[index].Evaluations = append(list[index].Evaluations, value)
+			} else {
+				eva := evaluationContain{Category: value.Category}
+				eva.Evaluations = append(eva.Evaluations, value)
+				list = append(list, eva)
+			}
+		}
+	}
+	c.JSON(http.StatusOK, models.Result{Data: &list})
 }
 
 // QryQuestion 获取题目
@@ -85,4 +103,13 @@ func UpAnswer(c *gin.Context) {
 	res.Msg = ""
 	res.Data = ""
 	c.JSON(http.StatusOK, res)
+}
+
+func checkExistCategory(list *[]evaluationContain, category string) int {
+	for index, value := range *list {
+		if category == value.Category {
+			return index
+		}
+	}
+	return -1
 }
