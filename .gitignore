@@ -16,3 +16,4 @@
 debug
 sel
 *.log
+conf/app.conf
