@@ -9,13 +9,14 @@ import (
 )
 
 type config struct {
-	Sqlname string
-	Mysql   string
-	WXAppID string
-	WXAppSecret string
-	WXOriID string
-	WXToken string
+	Sqlname           string
+	Mysql             string
+	WXAppID           string
+	WXAppSecret       string
+	WXOriID           string
+	WXToken           string
 	Oauth2RedirectURI string
+	Port              string
 }
 
 var Config *config
