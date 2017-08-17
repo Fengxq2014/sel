@@ -22,6 +22,7 @@ func InitRouter() *gin.Engine {
 	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
 	router := gin.Default()
 	router.Use(handleErrors)
+	router.Static("/front", "./front")
 	router.GET("/", apis.IndexApi)
 	// authorized := router.Group("/")
 	// authorized.Use(jwtAuth)

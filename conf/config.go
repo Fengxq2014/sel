@@ -17,6 +17,10 @@ type config struct {
 	WXToken           string
 	Oauth2RedirectURI string
 	Port              string
+	SmsID             string
+	Access_key_id     string
+	Access_secret     string
+	Sign_name         string
 }
 
 var Config *config

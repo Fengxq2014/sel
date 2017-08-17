@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"github.com/Fengxq2014/sel/conf"
 	"errors"
 	"fmt"
 	"net/http"
@@ -154,7 +155,7 @@ func SendSMS(c *gin.Context) {
 		c.JSON(http.StatusOK, result)
 		return
 	}
-	aliyun_sms, err := aliyun_sms.NewAliyunSms("薄荷叶", "SMS_83955022", "LTAIfScyzpJdTAFi", "Kw5STaGOvayPhzGEr4nrsvzu4cKK0z")
+	aliyun_sms, err := aliyun_sms.NewAliyunSms(conf.Config.Sign_name, conf.Config.SmsID, conf.Config.Access_key_id, conf.Config.Access_secret)
 	if err != nil {
 		tool.Error(err)
 		result.Msg = err.Error()

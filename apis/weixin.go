@@ -12,7 +12,6 @@ import (
 	"github.com/chanxuehong/sid"
 
 	"github.com/Fengxq2014/sel/conf"
-	"github.com/Fengxq2014/sel/models"
 	"github.com/chanxuehong/wechat.v2/mp/core"
 	"github.com/chanxuehong/wechat.v2/mp/menu"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/request"
@@ -160,8 +159,6 @@ func Page2Handler(c *gin.Context) {
 		log.Println(err)
 		return
 	}
-	AuthCodeURL := ""
-	p := models.User{Openid: userinfo.OpenId}
 	usercookie := http.Cookie{
 		Name:     "openid",
 		Value:    userinfo.OpenId,
@@ -169,14 +166,15 @@ func Page2Handler(c *gin.Context) {
 		MaxAge:   int(time.Hour / time.Second),
 	}
 	http.SetCookie(c.Writer, &usercookie)
-	_, err = p.GetUserByOpenid()
-	if err != nil {
-		AuthCodeURL = "/login"
-	} else {
-		AuthCodeURL = "/list"
+	AuthCodeURL := ""
+	switch menuType := c.Query("menutype"); menuType {
+	case "1":
+		AuthCodeURL = "/front/appbase/assessment"
+	case "2":
+		AuthCodeURL = "/front/appbase/course"
+	default:
+		AuthCodeURL = "/front/appbase/mine"
 	}
 	http.Redirect(c.Writer, c.Request, AuthCodeURL, http.StatusFound)
-	// json.NewEncoder(c.Writer).Encode(userinfo)
-	// log.Printf("userinfo: %+v\r\n", userinfo)
 	return
 }
