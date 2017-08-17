@@ -67,6 +67,7 @@ func QryQuestion(c *gin.Context) {
 		res.Msg = "获取题目失败"
 		res.Data = nil
 		c.JSON(http.StatusOK, res)
+		return
 	}
 	res.Res = 0
 	res.Msg = ""

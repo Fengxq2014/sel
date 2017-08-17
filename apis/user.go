@@ -22,27 +22,27 @@ func IndexApi(c *gin.Context) {
 		// ggid int       `form:"gender"`
 		T time.Time `form:"birth_date"`
 	}
-	eva := models.Evaluation{Name: "适应性行为测评",
-		Category:      "SEL能力评估",
-		User_access:   0,
-		Abstract:      "这是简介",
-		Details:       "这是详细说明",
-		Price:         0,
-		Page_number:   10,
-		Person_count:  50,
-		Picture:       "http://img4.imgtn.bdimg.com/it/u=2104185324,1359413794&fm=26&gp=0.jpg",
-		Sample_report: "/root/evaluation_report",
-	}
-	id, err := eva.InsertEvaluation()
-	tool.Debug(err)
-	tool.Debug(id)
-	var query param
-	if c.BindQuery(&query) == nil {
-		c.AbortWithError(200, errors.New("errorsss"))
-	}
-	res := models.Result{}
-	c.JSON(200, res)
-	c.String(http.StatusOK, "It works")
+	// eva := models.Evaluation{Name: "适应性行为测评",
+	// 	Category:      "SEL能力评估",
+	// 	User_access:   0,
+	// 	Abstract:      "这是简介",
+	// 	Details:       "这是详细说明",
+	// 	Price:         0,
+	// 	Page_number:   10,
+	// 	Person_count:  50,
+	// 	Picture:       "http://img4.imgtn.bdimg.com/it/u=2104185324,1359413794&fm=26&gp=0.jpg",
+	// 	Sample_report: "/root/evaluation_report",
+	// }
+	// //id, err := eva.InsertEvaluation()
+	// tool.Debug(err)
+	// tool.Debug(id)
+	// var query param
+	// if c.BindQuery(&query) == nil {
+	// 	c.AbortWithError(200, errors.New("errorsss"))
+	// }
+	// res := models.Result{}
+	// c.JSON(200, res)
+	// c.String(http.StatusOK, "It works")
 }
 
 // QryUserAPI 查询用户信息
@@ -109,10 +109,8 @@ func Login(c *gin.Context) {
 			c.Error(err)
 			return
 		}
-		msg := fmt.Sprintf("insert successful %d", ra)
-		res.Res = 0
-		res.Msg = msg
-		res.Data = nil
+		tool.Info("insert successful %d", ra)
+
 		c.JSON(http.StatusOK, res)
 	}
 }
@@ -121,12 +119,12 @@ func Login(c *gin.Context) {
 func AddUcAPI(c *gin.Context) {
 	type param struct {
 		UID  int    `form:"user_id" binding:"required"`
-		Cid  int    `form:"child_id" binding:"required"`
 		Re   int    `form:"relation" binding:"required"`
 		Ggid int    `form:"gender" binding:"required"`
 		Name string `form:"name" binding:"required"`
 		T    string `form:"birth_date" binding:"required"`
 	}
+	Cid := time.Now().Unix()
 	var queryStr param
 	if c.BindQuery(&queryStr) != nil {
 		c.Error(errors.New("参数为空"))
@@ -137,15 +135,13 @@ func AddUcAPI(c *gin.Context) {
 		c.Error(errors.New("时间错误"))
 		return
 	}
-	err = models.InsertChild(queryStr.UID, queryStr.Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
+	err = models.InsertChild(queryStr.UID, Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
 	res := models.Result{}
 	if err != nil {
 		c.Error(errors.New("没有该用户信息请登录！"))
 		return
 	}
-	res.Res = 0
-	res.Msg = ""
-	res.Data = ""
+
 	c.JSON(http.StatusOK, res)
 }
 

@@ -38,17 +38,17 @@ func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
 	return evaluations, err
 }
 
-func (e *Evaluation) InsertEvaluation() (int64, error) {
-	rs, err := db.SqlDB.Exec("insert into evaluation(name,category,user_access,abstract,details,price,page_number,person_count,picture,sample_report) values(?,?,?,?,?,?,?,?,?,?)", e.Name, e.Category, e.User_access, e.Abstract, e.Details, e.Price, e.Page_number, e.Person_count, e.Picture, e.Sample_report)
-	if err != nil {
-		return 0, err
-	}
-	id, err := rs.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
-}
+// func (e *Evaluation) InsertEvaluation() (int64, error) {
+// 	rs, err := db.SqlDB.Exec("insert into evaluation(name,category,user_access,abstract,details,price,page_number,person_count,picture,sample_report) values(?,?,?,?,?,?,?,?,?,?)", e.Name, e.Category, e.User_access, e.Abstract, e.Details, e.Price, e.Page_number, e.Person_count, e.Picture, e.Sample_report)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	id, err := rs.LastInsertId()
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return id, nil
+// }
 
 type Question struct {
 	Question_id    int    `json:"question_id" form:"question_id"`
@@ -60,10 +60,11 @@ type Question struct {
 // GetQuestion 获取测评题目
 func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err error) {
 	ue := User_evaluation{Evaluation_id: evaluation_id, User_id: user_id, Child_id: child_id}
+
 	if uee, err := ue.GetEvaluation(); err == nil {
 		question.Question_index = uee.Current_question_id
 	}
-	err = db.SqlDB.QueryRow("SELECT * FROM question where evaluation_id = ?", evaluation_id).Scan(&question.Question_id, &question.Evaluation_id, &question.Content)
+	err = db.SqlDB.QueryRow("SELECT * FROM question where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content)
 	if err != nil {
 		return question, err
 	}

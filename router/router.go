@@ -35,7 +35,7 @@ func InitRouter() *gin.Engine {
 	//登录
 	router.POST("/login", apis.Login)
 	//添加家长儿童关系
-	router.GET("/adduser", apis.AddUcAPI)
+	router.GET("/addchild", apis.AddUcAPI)
 	//获取测评列表
 	router.GET("/getevalutionlist", apis.QryEvaluation)
 	//获取题目
