@@ -2,15 +2,12 @@ package router
 
 import (
 	"errors"
-
-	"github.com/Fengxq2014/sel/tool"
-	// "time"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/Fengxq2014/sel/apis"
-
+	"github.com/Fengxq2014/sel/tool"
 	"github.com/gin-gonic/gin"
 )
 

@@ -8,10 +8,9 @@ import (
 
 	"github.com/Fengxq2014/sel/conf"
 
-	"github.com/Fengxq2014/sel/tool"
-
 	"github.com/Fengxq2014/aliyun_sms"
 	"github.com/Fengxq2014/sel/models"
+	"github.com/Fengxq2014/sel/tool"
 	"github.com/gin-gonic/gin"
 	"github.com/goroom/rand"
 )
@@ -96,7 +95,7 @@ func Login(c *gin.Context) {
 	_, err := p.GetUserByPhone()
 	// 家长登录插入客户信息
 	if err != nil {
-		p := models.User{Unionid: postStr.Cunionid, Role: 0, Name: postStr.Cname, Openid: postStr.ID, Phone_number:postStr.Ctel}
+		p := models.User{Unionid: postStr.Cunionid, Role: 0, Name: postStr.Cname, Openid: postStr.ID, Phone_number: postStr.Ctel}
 		ra, err := p.Insert()
 		if err != nil {
 			c.Error(err)
