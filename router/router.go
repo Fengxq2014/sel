@@ -35,6 +35,7 @@ func InitRouter() *gin.Engine {
 	router.Any("/weixin", apis.WeixinHandler)
 	//登录
 	router.POST("/login", apis.Login)
+	router.GET("/qryuser",apis.QryUserAPI) //通过openid查询用户信息
 	//添加家长儿童关系
 	router.GET("/addchild", apis.AddUcAPI)
 	//获取测评列表
@@ -53,9 +54,9 @@ func handleErrors(c *gin.Context) {
 	errorToPrint := c.Errors.Last()
 	if errorToPrint != nil {
 		c.JSON(200, gin.H{
-			"Res":  500,
-			"Msg":  errorToPrint.Error(),
-			"Data": nil,
+			"res":  500,
+			"msg":  errorToPrint.Error(),
+			"data": nil,
 		})
 	}
 }

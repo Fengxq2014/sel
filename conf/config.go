@@ -21,6 +21,7 @@ type config struct {
 	Access_key_id     string
 	Access_secret     string
 	Sign_name         string
+	Cookietime        int
 }
 
 var Config *config

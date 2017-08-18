@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"github.com/Fengxq2014/sel/tool"
 	"fmt"
 	"io"
 	"log"
@@ -95,10 +96,11 @@ func Page1Handler(c *gin.Context) {
 		Name:     "sid",
 		Value:    sid,
 		HttpOnly: true,
+		MaxAge:   int(time.Minute / time.Second),
 	}
 	http.SetCookie(c.Writer, &cookie)
 
-	AuthCodeURL := mpoauth2.AuthCodeURL(wxAppId, oauth2RedirectURI, oauth2Scope, "")
+	AuthCodeURL := mpoauth2.AuthCodeURL(wxAppId, oauth2RedirectURI+"?menuType="+c.Query("menuType"), oauth2Scope, state)
 	log.Println("AuthCodeURL:", AuthCodeURL)
 
 	http.Redirect(c.Writer, c.Request, AuthCodeURL, http.StatusFound)
@@ -148,30 +150,32 @@ func Page2Handler(c *gin.Context) {
 	token, err := oauth2Client.ExchangeToken(code)
 	if err != nil {
 		io.WriteString(c.Writer, err.Error())
-		log.Println(err)
+		tool.Error(err)
 		return
 	}
 	log.Printf("token: %+v\r\n", token)
 
-	userinfo, err := mpoauth2.GetUserInfo(token.AccessToken, token.OpenId, "", nil)
-	if err != nil {
-		io.WriteString(c.Writer, err.Error())
-		log.Println(err)
-		return
-	}
+	// userinfo, err := mpoauth2.GetUserInfo(token.AccessToken, token.OpenId, "", nil)
+	// if err != nil {
+	// 	io.WriteString(c.Writer, err.Error())
+	// 	tool.Error(err)
+	// 	return
+	// }
 	usercookie := http.Cookie{
 		Name:     "openid",
-		Value:    userinfo.OpenId,
-		HttpOnly: true,
-		MaxAge:   int(time.Hour / time.Second),
+		Value:    token.OpenId,
+		// HttpOnly: true,
+		MaxAge:   int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
 	}
 	http.SetCookie(c.Writer, &usercookie)
 	AuthCodeURL := ""
-	switch menuType := c.Query("menutype"); menuType {
+	switch menuType := c.Query("menuType"); menuType {
 	case "1":
-		AuthCodeURL = "/front/appbase/assessment"
+		AuthCodeURL = "/front/dist/#/appbase/assessment"
 	case "2":
-		AuthCodeURL = "/front/appbase/course"
+		AuthCodeURL = "/front/dist/#/appbase/course"
+	case "3":
+		AuthCodeURL = "/front/dist/#/appbase/mine"
 	default:
 		AuthCodeURL = "/front/appbase/mine"
 	}

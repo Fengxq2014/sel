@@ -1,11 +1,12 @@
 package apis
 
 import (
-	"github.com/Fengxq2014/sel/conf"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/Fengxq2014/sel/conf"
 
 	"github.com/Fengxq2014/sel/tool"
 
@@ -69,42 +70,46 @@ func QryUserAPI(c *gin.Context) {
 // Login 登录判断.
 func Login(c *gin.Context) {
 	res := models.Result{}
-	cid := c.Query("openid")
-	ctel := c.Query("telno")
-	cname := c.Query("name")
-	cunionid := c.Query("unionid")
-	number := c.Query("number")
-	if cid == "" || ctel == "" || cname == "" || number == "" {
+	type param struct {
+		ID       string `json:"openid" binding:"required"`
+		Ctel     string `json:"telno" binding:"required"`
+		Cname    string `json:"name" binding:"required"`
+		Cunionid string `json:"unionid"`
+		Number   string `json:"number" binding:"required"`
+	}
+	var postStr param
+	if c.BindJSON(&postStr) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	session, err := sessionStorage.Get(ctel)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-	if session.(string) != number {
-		c.Error(errors.New("验证码错误！"))
-		return
-	}
-	p := models.User{Phone_number: ctel}
-	_, err = p.GetUserByPhone()
+	// session, err := sessionStorage.Get(postStr.Ctel)
+	// if err != nil {
+	// 	c.Error(err)
+	// 	return
+	// }
+	// if session.(string) != postStr.Number {
+	// 	c.Error(errors.New("验证码错误！"))
+	// 	return
+	// }
+	sessionStorage.Delete(postStr.Ctel)
+	p := models.User{Phone_number: postStr.Ctel}
+	_, err := p.GetUserByPhone()
 	// 家长登录插入客户信息
 	if err != nil {
-		p := models.User{Unionid: cunionid, Role: 0, Name: cname, Openid: cid}
+		p := models.User{Unionid: postStr.Cunionid, Role: 0, Name: postStr.Cname, Openid: postStr.ID, Phone_number:postStr.Ctel}
 		ra, err := p.Insert()
 		if err != nil {
 			c.Error(err)
 			return
 		}
 		msg := fmt.Sprintf("insert successful %d", ra)
-		res.Res = 1
+		res.Res = 0
 		res.Msg = msg
 		res.Data = nil
 		c.JSON(http.StatusOK, res)
 	} else {
 		// 老师登录插入微信标识
-		p := models.User{Unionid: cunionid, Phone_number: ctel, Openid: cid}
+		p := models.User{Unionid: postStr.Cunionid, Phone_number: postStr.Ctel, Openid: postStr.ID}
 		ra, err := p.Update()
 		if err != nil {
 			c.Error(err)
@@ -171,7 +176,7 @@ func SendSMS(c *gin.Context) {
 		c.JSON(http.StatusOK, result)
 		return
 	}
-	err = sessionStorage.Add(telno, no)
+	err = sessionStorage.Set(telno, no)
 	if err != nil {
 		result.Msg = err.Error()
 		c.JSON(http.StatusOK, result)

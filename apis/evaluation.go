@@ -63,7 +63,7 @@ func QryQuestion(c *gin.Context) {
 	}
 	var err error
 	var evaluation models.Question
-	if queryStr.Index >= 0 {
+	if queryStr.Index > 0 {
 		evaluation, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index)
 	} else {
 		evaluation, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
