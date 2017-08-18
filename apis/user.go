@@ -1,16 +1,15 @@
 package apis
 
 import (
-	"github.com/Fengxq2014/sel/conf"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/Fengxq2014/sel/tool"
-
 	"github.com/Fengxq2014/aliyun_sms"
+	"github.com/Fengxq2014/sel/conf"
 	"github.com/Fengxq2014/sel/models"
+	"github.com/Fengxq2014/sel/tool"
 	"github.com/gin-gonic/gin"
 	"github.com/goroom/rand"
 )
