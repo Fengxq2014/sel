@@ -51,20 +51,28 @@ func QryEvaluation(c *gin.Context) {
 // QryQuestion 获取题目
 func QryQuestion(c *gin.Context) {
 	type param struct {
-		Eid int `form:"evaluation_id" binding:"required"` //测评ID
-		UID int `form:"user_id" binding:"required"`       //用户ID
-		CiD int `form:"child_id" binding:"required"`      //儿童ID
+		Eid   int `form:"evaluation_id" binding:"required"` //测评ID
+		UID   int `form:"user_id" binding:"required"`       //用户ID
+		CiD   int `form:"child_id" binding:"required"`      //儿童ID
+		Index int `form:"index"`                            //题目号
 	}
 	var queryStr param
 	if c.BindQuery(&queryStr) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	evaluation, err := models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
+	var err error
+	var evaluation models.Question
+	if queryStr.Index >= 0 {
+		evaluation, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index)
+	} else {
+		evaluation, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
+	}
+
 	res := models.Result{}
 	if err != nil {
 		res.Res = 1
-		res.Msg = "获取题目失败"
+		res.Msg = "获取题目失败" + err.Error()
 		res.Data = nil
 		c.JSON(http.StatusOK, res)
 		return

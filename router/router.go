@@ -15,7 +15,7 @@ import (
 func InitRouter() *gin.Engine {
 	pwd, _ := os.Getwd()
 	s := filepath.Join(pwd, "log", "server.log")
-	myfile, _ := os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_RDWR, 066)
+	myfile, _ := os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
 	router := gin.Default()
 	router.Use(handleErrors)

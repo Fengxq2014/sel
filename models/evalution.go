@@ -55,19 +55,46 @@ type Question struct {
 	Evaluation_id  int    `json:"evaluation_id" form:"evaluation_id"`
 	Question_index int    `json:"question_index" form:"question_index"`
 	Content        string `json:"content" form:"content"`
+	MaxIndex       int    `json:"maxIndex"`
 }
 
 // GetQuestion 获取测评题目
 func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err error) {
 	ue := User_evaluation{Evaluation_id: evaluation_id, User_id: user_id, Child_id: child_id}
-
+	var maxIndex int
+	err = db.SqlDB.QueryRow("select Max(question_index) from question where evaluation_id=?", evaluation_id).Scan(&maxIndex)
+	if err != nil {
+		return question, err
+	}
+	question.MaxIndex = maxIndex
 	if uee, err := ue.GetEvaluation(); err == nil {
-		question.Question_index = uee.Current_question_id
+		if uee.Current_question_id > 0 {
+			question.Question_index = uee.Current_question_id
+		} else {
+			question.Question_index = 1
+		}
+	} else {
+		question.Question_index = 1
 	}
 	err = db.SqlDB.QueryRow("SELECT * FROM question where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content)
 	if err != nil {
 		return question, err
 	}
+	return question, err
+}
+
+// GetQuestionByIndex 根据index获取题目
+func GetQuestionByIndex(evaluation_id, index int) (question Question, err error) {
+	var maxIndex int
+	err = db.SqlDB.QueryRow("select Max(question_index) from question where evaluation_id=?", evaluation_id).Scan(&maxIndex)
+	if err != nil {
+		return question, err
+	}
+	question.MaxIndex = maxIndex
+	if index > maxIndex {
+		index = maxIndex
+	}
+	err = db.SqlDB.QueryRow("select evaluation_id,question_index,content from question where evaluation_id =? and question_index=?", evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content)
 	return question, err
 }
 
@@ -161,4 +188,11 @@ func (uq *User_question) AddQuestion() (id int64, err error) {
 	}
 	id, err = rs.LastInsertId()
 	return
+}
+
+func max(x, y int64) int64 {
+	if x > y {
+		return x
+	}
+	return y
 }
