@@ -32,7 +32,7 @@ func InitRouter() *gin.Engine {
 	router.Any("/weixin", apis.WeixinHandler)
 	//登录
 	router.POST("/login", apis.Login)
-	router.GET("/qryuser",apis.QryUserAPI) //通过openid查询用户信息
+	router.GET("/qryuser", apis.QryUserAPI) //通过openid查询用户信息
 	//添加家长儿童关系
 	router.GET("/addchild", apis.AddUcAPI)
 	//获取测评列表
@@ -43,6 +43,10 @@ func InitRouter() *gin.Engine {
 	router.GET("/updateevalution", apis.UpAnswer)
 	//获取验证码
 	router.GET("/sendcode", apis.SendSMS)
+	//获取课程列表
+	router.GET("/QryCourse", apis.QryCourse)
+	//更新用户课程表
+	router.GET("/UpUserCouse", apis.UpUserCouse)
 	return router
 }
 

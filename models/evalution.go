@@ -38,18 +38,6 @@ func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
 	return evaluations, err
 }
 
-// func (e *Evaluation) InsertEvaluation() (int64, error) {
-// 	rs, err := db.SqlDB.Exec("insert into evaluation(name,category,user_access,abstract,details,price,page_number,person_count,picture,sample_report) values(?,?,?,?,?,?,?,?,?,?)", e.Name, e.Category, e.User_access, e.Abstract, e.Details, e.Price, e.Page_number, e.Person_count, e.Picture, e.Sample_report)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	id, err := rs.LastInsertId()
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return id, nil
-// }
-
 type Question struct {
 	Question_id    int    `json:"question_id" form:"question_id"`
 	Evaluation_id  int    `json:"evaluation_id" form:"evaluation_id"`

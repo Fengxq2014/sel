@@ -1,12 +1,13 @@
 package apis
 
 import (
-	"github.com/Fengxq2014/sel/tool"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/Fengxq2014/sel/tool"
 
 	"github.com/chanxuehong/rand"
 	"github.com/chanxuehong/session"
@@ -29,7 +30,7 @@ var (
 	wxToken           = conf.Config.WXToken
 	wxEncodedAESKey   = ""
 	oauth2RedirectURI = conf.Config.Oauth2RedirectURI
-	oauth2Scope       = "snsapi_base"
+	oauth2Scope       = "snsapi_userinfo"
 	// 下面两个变量不一定非要作为全局变量, 根据自己的场景来选择.
 	msgHandler core.Handler
 	msgServer  *core.Server
@@ -155,19 +156,35 @@ func Page2Handler(c *gin.Context) {
 	}
 	log.Printf("token: %+v\r\n", token)
 
-	// userinfo, err := mpoauth2.GetUserInfo(token.AccessToken, token.OpenId, "", nil)
-	// if err != nil {
-	// 	io.WriteString(c.Writer, err.Error())
-	// 	tool.Error(err)
-	// 	return
-	// }
-	usercookie := http.Cookie{
-		Name:     "openid",
-		Value:    token.OpenId,
-		// HttpOnly: true,
-		MaxAge:   int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
+	userinfo, err := mpoauth2.GetUserInfo(token.AccessToken, token.OpenId, "", nil)
+	if err != nil {
+		io.WriteString(c.Writer, err.Error())
+		tool.Error(err)
+		return
 	}
-	http.SetCookie(c.Writer, &usercookie)
+	fmt.Println(userinfo)
+	usercookie1 := http.Cookie{
+		Name:  "openid",
+		Value: userinfo.OpenId,
+		// HttpOnly: true,
+		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
+	}
+	usercookie2 := http.Cookie{
+		Name:  "nickname",
+		Value: userinfo.Nickname,
+		// HttpOnly: true,
+		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
+	}
+	usercookie3 := http.Cookie{
+		Name:  "headimgurl",
+		Value: userinfo.HeadImageURL,
+		// HttpOnly: true,
+		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
+	}
+	http.SetCookie(c.Writer, &usercookie1)
+	http.SetCookie(c.Writer, &usercookie2)
+	http.SetCookie(c.Writer, &usercookie3)
+
 	AuthCodeURL := ""
 	switch menuType := c.Query("menuType"); menuType {
 	case "1":

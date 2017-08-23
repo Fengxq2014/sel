@@ -7,12 +7,13 @@ import (
 )
 
 type User struct {
-	User_id      int    `json:"user_id" form:"user_id"`
-	Phone_number string `json:"phone_number" form:"phone_number"`
-	Unionid      string `json:"unionid" form:"unionid"`
-	Name         string `json:"name" form:"name"`
-	Role         int    `json:"role" form:"role"`
-	Openid       string `json:"openid" form:"openid"`
+	User_id       int    `json:"user_id" form:"user_id"`
+	Phone_number  string `json:"phone_number" form:"phone_number"`
+	Unionid       string `json:"unionid" form:"unionid"`
+	Name          string `json:"name" form:"name"`
+	Role          int    `json:"role" form:"role"`
+	Openid        string `json:"openid" form:"openid"`
+	Head_portrait string `json:"head_portrait" form:"head_portrait"`
 }
 
 // GetUserByOpenid 通过微信微信身份标识获取客户信息
@@ -27,7 +28,6 @@ func (u *User) GetUserByOpenid() (user User, err error) {
 }
 
 // GetUserByPhone 通过微信微信身份标识获取客户信息.
-// user User struct
 func (u *User) GetUserByPhone() (user User, err error) {
 	err = db.SqlDB.QueryRow("SELECT * FROM user where phone_number=?", u.Phone_number).Scan(&user.User_id, &user.Phone_number, &user.Unionid, &user.Name, &user.Role, &user.Openid)
 
@@ -40,7 +40,7 @@ func (u *User) GetUserByPhone() (user User, err error) {
 
 // Insert 家长注册
 func (u *User) Insert() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO user(phone_number, unionid, name, role, openid) VALUES (?, ?, ?, ?, ?)", u.Phone_number, u.Unionid, u.Name, 0, u.Openid)
+	rs, err := db.SqlDB.Exec("INSERT INTO user(phone_number, unionid, name, role, openid,head_portrait) VALUES (?, ?, ?, ?, ?,?)", u.Phone_number, u.Unionid, u.Name, 0, u.Openid, u.Head_portrait)
 
 	if err != nil {
 		return

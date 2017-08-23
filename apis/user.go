@@ -16,34 +16,7 @@ import (
 )
 
 func IndexApi(c *gin.Context) {
-	type param struct {
-		Uid string `form:"user_id"`
-		// cid  int       `form:"child_id"`
-		// re   int       `form:"relation"`
-		// ggid int       `form:"gender"`
-		T time.Time `form:"birth_date"`
-	}
-	// eva := models.Evaluation{Name: "适应性行为测评",
-	// 	Category:      "SEL能力评估",
-	// 	User_access:   0,
-	// 	Abstract:      "这是简介",
-	// 	Details:       "这是详细说明",
-	// 	Price:         0,
-	// 	Page_number:   10,
-	// 	Person_count:  50,
-	// 	Picture:       "http://img4.imgtn.bdimg.com/it/u=2104185324,1359413794&fm=26&gp=0.jpg",
-	// 	Sample_report: "/root/evaluation_report",
-	// }
-	// //id, err := eva.InsertEvaluation()
-	// tool.Debug(err)
-	// tool.Debug(id)
-	// var query param
-	// if c.BindQuery(&query) == nil {
-	// 	c.AbortWithError(200, errors.New("errorsss"))
-	// }
-	// res := models.Result{}
-	// c.JSON(200, res)
-	// c.String(http.StatusOK, "It works")
+
 }
 
 // QryUserAPI 查询用户信息
@@ -70,26 +43,18 @@ func QryUserAPI(c *gin.Context) {
 func Login(c *gin.Context) {
 	res := models.Result{}
 	type param struct {
-		ID       string `json:"openid" binding:"required"`
-		Ctel     string `json:"telno" binding:"required"`
-		Cname    string `json:"name" binding:"required"`
-		Cunionid string `json:"unionid"`
-		Number   string `json:"number" binding:"required"`
+		ID            string `json:"openid" binding:"required"`
+		Ctel          string `json:"telno" binding:"required"`
+		Cname         string `json:"name" binding:"required"`
+		Cunionid      string `json:"unionid"`
+		Number        string `json:"number" binding:"required"`
+		Head_portrait string `json:"head_portrait"`
 	}
 	var postStr param
 	if c.BindJSON(&postStr) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	// session, err := sessionStorage.Get(postStr.Ctel)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
-	// if session.(string) != postStr.Number {
-	// 	c.Error(errors.New("验证码错误！"))
-	// 	return
-	// }
 	sessionStorage.Delete(postStr.Ctel)
 	p := models.User{Phone_number: postStr.Ctel}
 	_, err := p.GetUserByPhone()
