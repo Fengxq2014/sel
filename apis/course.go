@@ -6,12 +6,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Fengxq2014/aliyun/vod"
+	"github.com/Fengxq2014/sel/conf"
 	"github.com/Fengxq2014/sel/models"
 	"github.com/gin-gonic/gin"
 )
 
+type courseContain struct {
+	Category string          `json:"category"`
+	Course   []models.Course `json:"data"`
+}
+
 // QryCourse 获取课程列表
 func QryCourse(c *gin.Context) {
+	list := []courseContain{}
 	caccess := c.Query("user_access")
 	if caccess == "" {
 		c.Error(errors.New("参数为空"))
@@ -32,6 +40,20 @@ func QryCourse(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 		return
 	}
+
+	if len(course) > 0 {
+		for _, value := range course {
+			index := checkExistCategorys(&list, value.Category)
+			if index > -1 {
+				list[index].Course = append(list[index].Course, value)
+			} else {
+				eva := courseContain{Category: value.Category}
+				eva.Course = append(eva.Course, value)
+				list = append(list, eva)
+			}
+		}
+	}
+
 	res.Res = 0
 	res.Msg = ""
 	res.Data = course
@@ -64,6 +86,34 @@ func UpUserCouse(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = ""
+
+	c.JSON(http.StatusOK, res)
+}
+
+func checkExistCategorys(list *[]courseContain, category string) int {
+	for index, value := range *list {
+		if category == value.Category {
+			return index
+		}
+	}
+	return -1
+}
+
+// GetVideo 获取视频播放地址
+func GetVideo(c *gin.Context) {
+	res := models.Result{}
+	Media := c.Query("media")
+	playAuth, err := vod.NewAliyunVod(conf.Config.Access_key_id, conf.Config.Access_secret).GetVideoPlayAuth(Media)
+	if err != nil {
+		res.Res = 1
+		res.Msg = err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = playAuth.PlayAuth
 
 	c.JSON(http.StatusOK, res)
 }

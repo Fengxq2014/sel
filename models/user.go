@@ -14,11 +14,12 @@ type User struct {
 	Role          int    `json:"role" form:"role"`
 	Openid        string `json:"openid" form:"openid"`
 	Head_portrait string `json:"head_portrait" form:"head_portrait"`
+	Child_id      string `json:"child_id" form:"child_id"`
 }
 
 // GetUserByOpenid 通过微信微信身份标识获取客户信息
 func (u *User) GetUserByOpenid() (user User, err error) {
-	err = db.SqlDB.QueryRow("SELECT * FROM user where openid = ?", u.Openid).Scan(&user.User_id, &user.Phone_number, &user.Unionid, &user.Name, &user.Role, &user.Openid)
+	err = db.SqlDB.QueryRow("SELECT a.user_id,a.phone_number,a.name,a.role,a.head_portrait,b.child_id FROM user a left join uc_relation b on b.user_id=a.user_id where a.openid = ?", u.Openid).Scan(&user.User_id, &user.Phone_number, &user.Name, &user.Role, &user.Head_portrait, &user.Child_id)
 
 	if err != nil {
 		return user, err

@@ -47,6 +47,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/QryCourse", apis.QryCourse)
 	//更新用户课程表
 	router.GET("/UpUserCouse", apis.UpUserCouse)
+	//获取视频播放地址
+	router.GET("/GetVideoPlayAuth", apis.GetVideo)
 	return router
 }
 
