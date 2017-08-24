@@ -54,11 +54,7 @@ func QryCourse(c *gin.Context) {
 		}
 	}
 
-	res.Res = 0
-	res.Msg = ""
-	res.Data = course
-
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, models.Result{Data: &list})
 }
 
 // UpUserCouse 更新用户课程表
