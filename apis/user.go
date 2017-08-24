@@ -45,7 +45,7 @@ func Login(c *gin.Context) {
 	type param struct {
 		ID            string `json:"openid" binding:"required"`
 		Ctel          string `json:"telno" binding:"required"`
-		Cname         string `json:"name" binding:"required"`
+		Cname         string `json:"name"`
 		Cunionid      string `json:"unionid"`
 		Number        string `json:"number" binding:"required"`
 		Head_portrait string `json:"head_portrait"`
