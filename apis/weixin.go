@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"net/url"
 	"fmt"
 	"io"
 	"log"
@@ -154,7 +155,6 @@ func Page2Handler(c *gin.Context) {
 		tool.Error(err)
 		return
 	}
-	log.Printf("token: %+v\r\n", token)
 
 	userinfo, err := mpoauth2.GetUserInfo(token.AccessToken, token.OpenId, "", nil)
 	if err != nil {
@@ -162,7 +162,7 @@ func Page2Handler(c *gin.Context) {
 		tool.Error(err)
 		return
 	}
-	fmt.Println(userinfo)
+	fmt.Println(userinfo.Nickname)
 	usercookie1 := http.Cookie{
 		Name:  "openid",
 		Value: userinfo.OpenId,
@@ -171,7 +171,7 @@ func Page2Handler(c *gin.Context) {
 	}
 	usercookie2 := http.Cookie{
 		Name:  "nickname",
-		Value: userinfo.Nickname,
+		Value: url.QueryEscape(userinfo.Nickname),
 		// HttpOnly: true,
 		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
 	}
