@@ -1,9 +1,12 @@
 package apis
 
 import (
+	"path/filepath"
+	"os"
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Fengxq2014/sel/conf"
@@ -151,4 +154,21 @@ func SendSMS(c *gin.Context) {
 	result.Msg = "成功"
 	c.JSON(http.StatusOK, result)
 	return
+}
+
+// UploadChildImg 上传儿童头像
+func UploadChildImg(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	fileName := strconv.FormatInt(time.Now().Unix(), 10) + file.Filename
+	pwd, _ := os.Getwd()
+	if err := c.SaveUploadedFile(file, filepath.Join(pwd, "front","childimg", fileName)); err != nil {
+		c.Error(err)
+		return
+	}
+	res := models.Result{Data: fileName}
+	c.JSON(http.StatusOK, res)
 }

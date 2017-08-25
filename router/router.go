@@ -49,6 +49,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/UpUserCouse", apis.UpUserCouse)
 	//获取视频播放地址
 	router.GET("/GetVideoPlayAuth", apis.GetVideo)
+	//上传儿童头像
+	router.POST("/UploadChildImg",apis.UploadChildImg)
 	return router
 }
 
