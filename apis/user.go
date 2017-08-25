@@ -19,7 +19,7 @@ import (
 )
 
 func IndexApi(c *gin.Context) {
-
+	c.String(http.StatusOK, "ok")
 }
 
 // QryUserAPI 查询用户信息
@@ -185,6 +185,7 @@ func QryUcAPI(c *gin.Context) {
 	if err != nil {
 		res.Res = 0
 		res.Msg = "没有该儿童信息！"
+		c.JSON(http.StatusOK, res)
 		return
 	}
 	res.Res = 0

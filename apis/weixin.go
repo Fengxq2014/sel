@@ -1,13 +1,13 @@
 package apis
 
 import (
-	"strings"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Fengxq2014/sel/tool"
@@ -43,6 +43,7 @@ var (
 	oauth2Endpoint    oauth2.Endpoint        = mpoauth2.NewEndpoint(wxAppId, wxAppSecret)
 	accessTokenServer core.AccessTokenServer = core.NewDefaultAccessTokenServer(wxAppId, wxAppSecret, nil)
 	wechatClient      *core.Client           = core.NewClient(accessTokenServer, nil)
+	ticketserver                             = jssdk.NewDefaultTicketServer(wechatClient)
 )
 
 func init() {
@@ -178,7 +179,7 @@ func Page2Handler(c *gin.Context) {
 		Name:  "headimgurl",
 		Value: userinfo.HeadImageURL,
 	}
-	accesstoken, err := accessTokenServer.Token()
+	accesstoken, err := ticketserver.Ticket()
 	if err != nil {
 		io.WriteString(c.Writer, err.Error())
 		tool.Error(err)
@@ -187,10 +188,10 @@ func Page2Handler(c *gin.Context) {
 	noncestr := string(rand.NewHex())
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	sign := jssdk.WXConfigSign(accesstoken, noncestr, timestamp, conf.Config.Host+"/front/dist/")
-	ss := []string{conf.Config.WXAppID,timestamp,noncestr,sign}
+	ss := []string{conf.Config.WXAppID, timestamp, noncestr, sign}
 	wxconfigCookie := http.Cookie{
 		Name:  "wxconfig",
-		Value: strings.Join(ss,"|"),
+		Value: strings.Join(ss, "|"),
 	}
 	http.SetCookie(c.Writer, &usercookie1)
 	http.SetCookie(c.Writer, &usercookie2)
