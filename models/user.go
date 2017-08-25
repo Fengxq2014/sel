@@ -28,7 +28,7 @@ func (u *User) GetUserByOpenid() (user User, err error) {
 	return user, nil
 }
 
-// GetUserByPhone 通过微信微信身份标识获取客户信息.
+// GetUserByPhone 通过微信微信身份标识获取客户信息
 func (u *User) GetUserByPhone() (user User, err error) {
 	err = db.SqlDB.QueryRow("SELECT * FROM user where phone_number=?", u.Phone_number).Scan(&user.User_id, &user.Phone_number, &user.Unionid, &user.Name, &user.Role, &user.Openid)
 
@@ -53,7 +53,7 @@ func (u *User) Insert() (id int64, err error) {
 
 // Update 老师更新
 func (u *User) Update() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("update user set unionid=? openid=?", u.Unionid, u.Openid)
+	rs, err := db.SqlDB.Exec("update user set unionid=? ,openid=?", u.Unionid, u.Openid)
 
 	if err != nil {
 		return
@@ -64,10 +64,11 @@ func (u *User) Update() (id int64, err error) {
 }
 
 type Child struct {
-	Child_id   int64     `json:"child_id" form:"child_id"`
-	Name       int       `json:"name" form:"name"`
-	Gender     int       `json:"gender" form:"gender"`
-	Birth_date time.Time `json:"birth_date" form:"birth_date"`
+	Child_id      int64     `json:"child_id" form:"child_id"`
+	Name          string    `json:"name" form:"name"`
+	Gender        int       `json:"gender" form:"gender"`
+	Birth_date    time.Time `json:"birth_date" form:"birth_date"`
+	Head_portrait string    `json:"head_portrait" form:"head_portrait"`
 }
 
 type Uc_relation struct {
@@ -105,4 +106,27 @@ func InsertChild(user_id int, child_id int64, relation, Gender int, Name string,
 	}
 
 	return nil
+}
+
+// Getchild 查询儿童信息
+func (uc *Uc_relation) Getchild() (child Child, err error) {
+	err = db.SqlDB.QueryRow("SELECT * FROM child where child_id in (select child_id from uc_relation where user_id=?)", uc.User_id).Scan(&child.Child_id, &child.Name, &child.Gender, &child.Birth_date, &child.Head_portrait)
+
+	if err != nil {
+		return child, err
+	}
+
+	return child, nil
+}
+
+// UpChild 更新儿童信息
+func (child *Child) UpChild() (id int64, err error) {
+	rs, err := db.SqlDB.Exec("update child set name=? ,gender=? ,birth_date=? ,head_portrait=? where child_id=?", &child.Name, &child.Gender, &child.Birth_date, &child.Head_portrait, &child.Child_id)
+
+	if err != nil {
+		return
+	}
+
+	id, err = rs.LastInsertId()
+	return
 }

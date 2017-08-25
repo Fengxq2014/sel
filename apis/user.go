@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Fengxq2014/sel/conf"
@@ -88,11 +89,13 @@ func Login(c *gin.Context) {
 // AddUcAPI 用户儿童关联
 func AddUcAPI(c *gin.Context) {
 	type param struct {
-		UID  int    `form:"user_id" binding:"required"`
-		Re   int    `form:"relation" binding:"required"`
-		Ggid int    `form:"gender" binding:"required"`
-		Name string `form:"name" binding:"required"`
-		T    string `form:"birth_date" binding:"required"`
+		UID           int    `form:"user_id" binding:"required"`
+		Re            int    `form:"relation" binding:"required"`
+		Ggid          int    `form:"gender" binding:"required"`
+		Name          string `form:"name" binding:"required"`
+		T             string `form:"birth_date" binding:"required"`
+		CCID          int64  `form:"child_id"`
+		Head_portrait string `form:"head_portrait"`
 	}
 	Cid := time.Now().Unix()
 	var queryStr param
@@ -105,10 +108,19 @@ func AddUcAPI(c *gin.Context) {
 		c.Error(errors.New("时间错误"))
 		return
 	}
-	err = models.InsertChild(queryStr.UID, Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
 	res := models.Result{}
+	if queryStr.CCID != 0 {
+		child := models.Child{Child_id: queryStr.CCID, Name: queryStr.Name, Gender: queryStr.Ggid, Birth_date: t, Head_portrait: queryStr.Head_portrait}
+		_, err := child.UpChild()
+		if err != nil {
+			c.Error(errors.New("更新儿童信息失败！"))
+			return
+		}
+		c.JSON(http.StatusOK, res)
+	}
+	err = models.InsertChild(queryStr.UID, Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
 	if err != nil {
-		c.Error(errors.New("没有该用户信息请登录！"))
+		c.Error(errors.New("插入儿童信息失败！"))
 		return
 	}
 
@@ -151,4 +163,29 @@ func SendSMS(c *gin.Context) {
 	result.Msg = "成功"
 	c.JSON(http.StatusOK, result)
 	return
+}
+
+// QryUcAPI 查询儿童信息
+func QryUcAPI(c *gin.Context) {
+	cid := c.Query("user_id")
+	if cid == "" {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	id, err := strconv.Atoi(cid)
+	if err != nil {
+		c.Error(errors.New("参数不合法"))
+		return
+	}
+	p := models.Uc_relation{User_id: id}
+	child, err := p.Getchild()
+	res := models.Result{}
+	if err != nil {
+		c.Error(errors.New("没有该儿童信息！"))
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = child
+	c.JSON(http.StatusOK, res)
 }

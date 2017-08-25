@@ -32,7 +32,10 @@ func InitRouter() *gin.Engine {
 	router.Any("/weixin", apis.WeixinHandler)
 	//登录
 	router.POST("/login", apis.Login)
-	router.GET("/qryuser", apis.QryUserAPI) //通过openid查询用户信息
+	//通过openid查询用户信息
+	router.GET("/qryuser", apis.QryUserAPI)
+	//查询儿童信息
+	router.GET("/qrychild", apis.QryUcAPI)
 	//添加家长儿童关系
 	router.GET("/addchild", apis.AddUcAPI)
 	//获取测评列表
