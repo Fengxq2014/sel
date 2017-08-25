@@ -22,6 +22,7 @@ type config struct {
 	Access_secret     string
 	Sign_name         string
 	Cookietime        int
+	Host              string
 }
 
 var Config *config

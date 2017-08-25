@@ -1,11 +1,13 @@
 package apis
 
 import (
-	"net/url"
+	"strings"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Fengxq2014/sel/tool"
@@ -16,6 +18,7 @@ import (
 
 	"github.com/Fengxq2014/sel/conf"
 	"github.com/chanxuehong/wechat.v2/mp/core"
+	"github.com/chanxuehong/wechat.v2/mp/jssdk"
 	"github.com/chanxuehong/wechat.v2/mp/menu"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/request"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/response"
@@ -36,8 +39,10 @@ var (
 	msgHandler core.Handler
 	msgServer  *core.Server
 
-	sessionStorage                 = session.New(20*60, 60*60)
-	oauth2Endpoint oauth2.Endpoint = mpoauth2.NewEndpoint(wxAppId, wxAppSecret)
+	sessionStorage                           = session.New(20*60, 60*60)
+	oauth2Endpoint    oauth2.Endpoint        = mpoauth2.NewEndpoint(wxAppId, wxAppSecret)
+	accessTokenServer core.AccessTokenServer = core.NewDefaultAccessTokenServer(wxAppId, wxAppSecret, nil)
+	wechatClient      *core.Client           = core.NewClient(accessTokenServer, nil)
 )
 
 func init() {
@@ -103,7 +108,6 @@ func Page1Handler(c *gin.Context) {
 	http.SetCookie(c.Writer, &cookie)
 
 	AuthCodeURL := mpoauth2.AuthCodeURL(wxAppId, oauth2RedirectURI+"?menuType="+c.Query("menuType"), oauth2Scope, state)
-	log.Println("AuthCodeURL:", AuthCodeURL)
 
 	http.Redirect(c.Writer, c.Request, AuthCodeURL, http.StatusFound)
 }
@@ -162,29 +166,36 @@ func Page2Handler(c *gin.Context) {
 		tool.Error(err)
 		return
 	}
-	fmt.Println(userinfo.Nickname)
 	usercookie1 := http.Cookie{
 		Name:  "openid",
 		Value: userinfo.OpenId,
-		// HttpOnly: true,
-		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
 	}
 	usercookie2 := http.Cookie{
 		Name:  "nickname",
 		Value: url.QueryEscape(userinfo.Nickname),
-		// HttpOnly: true,
-		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
 	}
 	usercookie3 := http.Cookie{
 		Name:  "headimgurl",
 		Value: userinfo.HeadImageURL,
-		// HttpOnly: true,
-		MaxAge: int(time.Minute * time.Duration(conf.Config.Cookietime) / time.Second),
+	}
+	accesstoken, err := accessTokenServer.Token()
+	if err != nil {
+		io.WriteString(c.Writer, err.Error())
+		tool.Error(err)
+		return
+	}
+	noncestr := string(rand.NewHex())
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	sign := jssdk.WXConfigSign(accesstoken, noncestr, timestamp, conf.Config.Host+"/front/dist/")
+	ss := []string{conf.Config.WXAppID,timestamp,noncestr,sign}
+	wxconfigCookie := http.Cookie{
+		Name:  "wxconfig",
+		Value: strings.Join(ss,"|"),
 	}
 	http.SetCookie(c.Writer, &usercookie1)
 	http.SetCookie(c.Writer, &usercookie2)
 	http.SetCookie(c.Writer, &usercookie3)
-
+	http.SetCookie(c.Writer, &wxconfigCookie)
 	AuthCodeURL := ""
 	switch menuType := c.Query("menuType"); menuType {
 	case "1":
