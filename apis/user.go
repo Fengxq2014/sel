@@ -183,7 +183,8 @@ func QryUcAPI(c *gin.Context) {
 	child, err := p.Getchild()
 	res := models.Result{}
 	if err != nil {
-		c.Error(errors.New("没有该儿童信息！"))
+		res.Res = 0
+		res.Msg = "没有该儿童信息！"
 		return
 	}
 	res.Res = 0
