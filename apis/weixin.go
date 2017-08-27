@@ -1,14 +1,19 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Fengxq2014/sel/models"
 
 	"github.com/Fengxq2014/sel/tool"
 
@@ -19,6 +24,7 @@ import (
 	"github.com/Fengxq2014/sel/conf"
 	"github.com/chanxuehong/wechat.v2/mp/core"
 	"github.com/chanxuehong/wechat.v2/mp/jssdk"
+	"github.com/chanxuehong/wechat.v2/mp/media"
 	"github.com/chanxuehong/wechat.v2/mp/menu"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/request"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/response"
@@ -113,7 +119,7 @@ func Page1Handler(c *gin.Context) {
 	http.Redirect(c.Writer, c.Request, AuthCodeURL, http.StatusFound)
 }
 
-// 授权后回调页面
+// Page2Handler 授权后回调页面
 func Page2Handler(c *gin.Context) {
 	log.Println(c.Request.RequestURI)
 
@@ -210,4 +216,29 @@ func Page2Handler(c *gin.Context) {
 	}
 	http.Redirect(c.Writer, c.Request, AuthCodeURL, http.StatusFound)
 	return
+}
+
+// DownloadMedia 通过mediaid下载媒体文件
+func DownloadMedia(c *gin.Context) {
+	mediaID := c.Query("mediaid")
+	if mediaID == "" {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	myfile, err := os.OpenFile(getFileName(mediaID), os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	_, err = media.DownloadToWriter(wechatClient, mediaID, myfile)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, models.Result{Data: "/front/childimg/" + mediaID + ".jpg"})
+}
+
+func getFileName(mediaID string) string {
+	pwd, _ := os.Getwd()
+	return filepath.Join(pwd, "front", "childimg", mediaID)
 }

@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -194,22 +192,5 @@ func QryUcAPI(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = child
-	c.JSON(http.StatusOK, res)
-}
-
-// UploadChildImg 上传儿童头像
-func UploadChildImg(c *gin.Context) {
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.Error(err)
-		return
-	}
-	fileName := strconv.FormatInt(time.Now().Unix(), 10) + file.Filename
-	pwd, _ := os.Getwd()
-	if err := c.SaveUploadedFile(file, filepath.Join(pwd, "front", "childimg", fileName)); err != nil {
-		c.Error(err)
-		return
-	}
-	res := models.Result{Data: fileName}
 	c.JSON(http.StatusOK, res)
 }
