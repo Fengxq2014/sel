@@ -91,9 +91,9 @@ func Login(c *gin.Context) {
 // AddUcAPI 用户儿童关联
 func AddUcAPI(c *gin.Context) {
 	type param struct {
-		UID           int    `form:"user_id" binding:"required"`
-		Re            int    `form:"relation" binding:"required"`
-		Ggid          int    `form:"gender" binding:"required"`
+		UID           int    `form:"user_id" binding:"exists"`
+		Re            int    `form:"relation" binding:"exists"`
+		Ggid          int    `form:"gender" binding:"exists"`
 		Name          string `form:"name" binding:"required"`
 		T             string `form:"birth_date" binding:"required"`
 		CCID          int64  `form:"child_id"`
@@ -119,8 +119,9 @@ func AddUcAPI(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, res)
+		return
 	}
-	err = models.InsertChild(queryStr.UID, Cid, queryStr.Re, queryStr.Ggid, queryStr.Name, t)
+	err = models.InsertChild(queryStr.UID, Cid, queryStr.Re, queryStr.Ggid, queryStr.Head_portrait, queryStr.Name, t)
 	if err != nil {
 		c.Error(errors.New("插入儿童信息失败！"))
 		return
@@ -188,6 +189,8 @@ func QryUcAPI(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 		return
 	}
+	a := child.Birth_date.Format("2006-01-02")
+	child.Birth_date, err = time.Parse("2006-01-02", a)
 	res.Res = 0
 	res.Msg = ""
 	res.Data = child

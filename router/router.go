@@ -53,7 +53,11 @@ func InitRouter() *gin.Engine {
 	//获取视频播放地址
 	router.GET("/GetVideoPlayAuth", apis.GetVideo)
 	//上传儿童头像
-	router.POST("/UploadChildImg",apis.UploadChildImg)
+	router.POST("/UploadChildImg", apis.UploadChildImg)
+	//查询本人测评
+	router.POST("/QryMyEvaluation", apis.QryMyEvaluation)
+	//查询本人课程
+	router.POST("/QryMyCourse", apis.QryMyCourse)
 	return router
 }
 

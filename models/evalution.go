@@ -184,3 +184,21 @@ func max(x, y int64) int64 {
 	}
 	return y
 }
+
+// GetMyEvaluation 获取本人测评
+func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
+	rows, err := db.SqlDB.Query("SELECT * FROM evaluation where evaluation_id in (select evaluation_id from user_evaluation where user_id=?)", user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var evaluation Evaluation
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
+		if err != nil {
+			return nil, err
+		}
+		evaluations = append(evaluations, evaluation)
+	}
+	return evaluations, err
+}

@@ -122,3 +122,36 @@ func checkExistCategory(list *[]evaluationContain, category string) int {
 	}
 	return -1
 }
+
+// QryMyEvaluation 查询本人测评
+func QryMyEvaluation(c *gin.Context) {
+	list := []evaluationContain{}
+	uid := c.Query("user_id")
+	if uid == "" {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	id, err := strconv.Atoi(uid)
+	if err != nil {
+		c.Error(errors.New("参数不合法"))
+		return
+	}
+	evaluation, err := models.GetMyEvaluation(id)
+	if err != nil {
+		c.Error(errors.New("查询有误"))
+		return
+	}
+	if len(evaluation) > 0 {
+		for _, value := range evaluation {
+			index := checkExistCategory(&list, value.Category)
+			if index > -1 {
+				list[index].Evaluations = append(list[index].Evaluations, value)
+			} else {
+				eva := evaluationContain{Category: value.Category}
+				eva.Evaluations = append(eva.Evaluations, value)
+				list = append(list, eva)
+			}
+		}
+	}
+	c.JSON(http.StatusOK, models.Result{Data: &list})
+}

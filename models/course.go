@@ -52,3 +52,21 @@ func (uc *User_course) AddUsercourse() (id int64, err error) {
 	id, err = rs.LastInsertId()
 	return
 }
+
+// GetMyCourse 获取课程列表
+func GetMyCourse(user_id int) (courses []Course, err error) {
+	rows, err := db.SqlDB.Query("SELECT * FROM course where course_id in (select course_id from user_course where user_id=?)", user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var course Course
+		err = rows.Scan(&course.Course_id, &course.Name, &course.Category, &course.User_access, &course.Valid_period, &course.Abstract, &course.Details, &course.Price, &course.Person_count, &course.Picture, &course.Media)
+		if err != nil {
+			return nil, err
+		}
+		courses = append(courses, course)
+	}
+	return courses, err
+}

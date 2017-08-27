@@ -83,20 +83,20 @@ type Uc_relation struct {
 }
 
 // InsertChild 插入儿童信息及儿童用户关联表
-func InsertChild(user_id int, child_id int64, relation, Gender int, Name string, Birth_date time.Time) (err error) {
+func InsertChild(user_id int, child_id int64, relation, Gender int, Head_portrait, Name string, Birth_date time.Time) (err error) {
 	tx, err := db.SqlDB.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	stmt, err := tx.Prepare("INSERT INTO child VALUES (?,?,?,?)")
+	stmt, err := tx.Prepare("INSERT INTO child VALUES (?,?,?,?,?)")
 	stmt1, err := tx.Prepare("INSERT INTO uc_relation(user_id, child_id, relation) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close() // danger!
 	defer stmt1.Close()
-	_, err = stmt.Exec(child_id, Name, Gender, Birth_date)
+	_, err = stmt.Exec(child_id, Name, Gender, Birth_date, Head_portrait)
 	if err != nil {
 		return err
 	}
