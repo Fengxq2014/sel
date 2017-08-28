@@ -64,7 +64,7 @@ func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err e
 	} else {
 		question.Question_index = 1
 	}
-	err = db.SqlDB.QueryRow("SELECT * FROM question where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content)
+	err = db.SqlDB.QueryRow("SELECT question_id,evaluation_id,question_index,content FROM question where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content)
 	if err != nil {
 		return question, err
 	}
