@@ -225,7 +225,12 @@ func DownloadMedia(c *gin.Context) {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	myfile, err := os.OpenFile(getFileName(mediaID), os.O_CREATE|os.O_RDWR, 0666)
+	fileName := getFileName(mediaID)
+	if checkFileIsExist(fileName) {
+		c.JSON(http.StatusOK, models.Result{Data: "/front/childimg/" + mediaID + ".jpg"})
+		return
+	}
+	myfile, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		c.Error(err)
 		return
@@ -240,5 +245,13 @@ func DownloadMedia(c *gin.Context) {
 
 func getFileName(mediaID string) string {
 	pwd, _ := os.Getwd()
-	return filepath.Join(pwd, "front", "childimg", mediaID)
+	return filepath.Join(pwd, "front", "childimg", mediaID+".jpg")
+}
+
+func checkFileIsExist(filename string) bool {
+	var exist = true
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		exist = false
+	}
+	return exist
 }
