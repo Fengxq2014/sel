@@ -63,7 +63,7 @@ func QryQuestion(c *gin.Context) {
 	}
 	var err error
 	var evaluation models.Question
-	if queryStr.Index > 0 {
+	if queryStr.Index > 1 {
 		evaluation, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index)
 	} else {
 		evaluation, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
@@ -104,9 +104,10 @@ func UpAnswer(c *gin.Context) {
 	res := models.Result{}
 	if err != nil {
 		res.Res = 1
-		res.Msg = "更新答案错误"
+		res.Msg = err.Error()
 		res.Data = nil
 		c.JSON(http.StatusOK, res)
+		return
 	}
 	res.Res = 0
 	res.Msg = ""

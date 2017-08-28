@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 
 	db "github.com/Fengxq2014/sel/database"
@@ -43,7 +44,8 @@ type Question struct {
 	Evaluation_id  int    `json:"evaluation_id" form:"evaluation_id"`
 	Question_index int    `json:"question_index" form:"question_index"`
 	Content        string `json:"content" form:"content"`
-	MaxIndex       int    `json:"maxIndex"`
+	MaxIndex       int    `json:"maxIndex"  form:"maxIndex"`
+	Answer         string `json:"answer"  form:"answer"`
 }
 
 // GetQuestion 获取测评题目
@@ -82,7 +84,11 @@ func GetQuestionByIndex(evaluation_id, index int) (question Question, err error)
 	if index > maxIndex {
 		index = maxIndex
 	}
-	err = db.SqlDB.QueryRow("select evaluation_id,question_index,content from question where evaluation_id =? and question_index=?", evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content)
+	var Answer sql.NullString
+	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_id where a.evaluation_id =? and a.question_index=?", evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	if Answer.Valid {
+		question.Answer = Answer.String
+	}
 	return question, err
 }
 
@@ -106,17 +112,23 @@ type User_question struct {
 
 // UpdateUserAnswer 上传答案
 func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int, Text_result, Report_result, Answer string) (err error) {
-	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id}
+	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: Current_question_id}
 	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer}
 	//user_evaluation 有记录
-	if uee, err := ue.GetEvaluation(); err != nil && uee.Child_id != 0 {
+	if _, err := ue.GetEvaluation(); err == nil {
 		err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
 		}
-		id, err := uq.AddQuestion()
-		if id < 1 && err != nil {
+		uqq, err := uq.QryQuestion()
+		if uqq.User_question_id != 0 {
+			err = uq.UpQuestion()
 			return err
+		} else {
+			_, err := uq.AddQuestion()
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		//user_evaluation 无记录
@@ -136,7 +148,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int,
 
 // GetEvaluation 获取用户测评表
 func (ue *User_evaluation) GetEvaluation() (evaluation User_evaluation, err error) {
-	err = db.SqlDB.QueryRow("SELECT User_evaluation_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
+	err = db.SqlDB.QueryRow("SELECT user_evaluation_id,current_question_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
 	if err != nil {
 		return evaluation, err
 	}
@@ -161,7 +173,7 @@ func (ue *User_evaluation) UpdateEvaluation() (err error) {
 }
 
 func (ue *User_evaluation) AddEvaluation() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO user_evaluation(evaluation_id, user_id,child_id,evaluation_time,current_question_id,text_result,report_result) VALUES (?, ?, ?, ?, ?, ?, ?)", ue.Evaluation_id, ue.User_id, ue.Child_id, ue.Evaluation_time, ue.Current_question_id, ue.Text_result, ue.Report_result)
+	rs, err := db.SqlDB.Exec("INSERT INTO user_evaluation(evaluation_id, user_id,child_id,evaluation_time,current_question_id,text_result,report_result) VALUES (?, ?, ?, ?, ?, ?, ?)", ue.Evaluation_id, ue.User_id, ue.Child_id, time.Now(), ue.Current_question_id, ue.Text_result, ue.Report_result)
 	if err != nil {
 		return 0, err
 	}
@@ -176,6 +188,18 @@ func (uq *User_question) AddQuestion() (id int64, err error) {
 	}
 	id, err = rs.LastInsertId()
 	return
+}
+
+func (uq *User_question) UpQuestion() (err error) {
+	stmt, err := db.SqlDB.Prepare("update user_question set answer=? where user_evaluation_id=? and question_id=?")
+	defer stmt.Close()
+	_, err = stmt.Exec(uq.Answer, uq.User_evaluation_id, uq.User_question_id)
+	return err
+}
+
+func (uq *User_question) QryQuestion() (uqs User_question, err error) {
+	err = db.SqlDB.QueryRow("SELECT user_question_id FROM user_question where user_evaluation_id=? and question_id=?", uq.User_evaluation_id, uq.Question_id).Scan(&uqs.User_question_id)
+	return uqs, err
 }
 
 func max(x, y int64) int64 {
