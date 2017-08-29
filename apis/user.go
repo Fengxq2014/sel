@@ -58,7 +58,7 @@ func Login(c *gin.Context) {
 	}
 	sessionStorage.Delete(postStr.Ctel)
 	p := models.User{Phone_number: postStr.Ctel}
-	_, err := p.GetUserByPhone()
+	_, err := p.GetUser()
 	// 家长登录插入客户信息
 	if err != nil {
 		p := models.User{Unionid: postStr.Cunionid, Role: 0, Name: postStr.Cname, Openid: postStr.ID, Phone_number: postStr.Ctel}

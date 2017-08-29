@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 
 	db "github.com/Fengxq2014/sel/database"
@@ -20,27 +19,30 @@ type User struct {
 
 // GetUserByOpenid 通过微信微信身份标识获取客户信息
 func (u *User) GetUserByOpenid() (user User, err error) {
-	var child_id sql.NullString
-	err = db.SqlDB.QueryRow("SELECT a.user_id,a.phone_number,a.name,a.role,a.head_portrait,b.child_id FROM user a left join uc_relation b on b.user_id=a.user_id where a.openid = ?", u.Openid).Scan(&user.User_id, &user.Phone_number, &user.Name, &user.Role, &user.Head_portrait, &child_id)
-	if child_id.Valid {
-		user.Child_id = child_id.String
-	}
-	if err != nil {
-		return user, err
-	}
+	_, err = db.Engine.Join("left", "uc_relation", "uc_relation.user_id=user.user_id").Where("user.openid = ?", u.Openid).Get(&user)
 
-	return user, nil
+	// var child_id sql.NullString
+	// err = db.SqlDB.QueryRow("SELECT a.user_id,a.phone_number,a.name,a.role,a.head_portrait,b.child_id FROM user a left join uc_relation b on b.user_id=a.user_id where a.openid = ?", u.Openid).Scan(&user.User_id, &user.Phone_number, &user.Name, &user.Role, &user.Head_portrait, &child_id)
+	// if child_id.Valid {
+	// 	user.Child_id = child_id.String
+	// }
+	// if err != nil {
+	// 	return user, err
+	// }
+
+	return user, err
 }
 
-// GetUserByPhone 通过微信微信身份标识获取客户信息
-func (u *User) GetUserByPhone() (user User, err error) {
-	err = db.SqlDB.QueryRow("SELECT * FROM user where phone_number=?", u.Phone_number).Scan(&user.User_id, &user.Phone_number, &user.Unionid, &user.Name, &user.Role, &user.Openid)
+// GetUser 获取客户信息
+func (u *User) GetUser() (user User, err error) {
+	_, err = db.Engine.Get(user)
 
-	if err != nil {
-		return user, err
-	}
+	// err = db.SqlDB.QueryRow("SELECT * FROM user where phone_number=?", u.Phone_number).Scan(&user.User_id, &user.Phone_number, &user.Unionid, &user.Name, &user.Role, &user.Openid)
+	// if err != nil {
+	// 	return user, err
+	// }
 
-	return user, nil
+	return user, err
 }
 
 // Insert 家长注册

@@ -26,7 +26,7 @@ type Evaluation struct {
 
 // GetEvaluation 获取测评列表
 func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
-	err = db.Engine.Find(&evaluations)
+	err = db.Engine.Where("user_access=?", e.User_access).Find(&evaluations)
 
 	// rows, err := db.SqlDB.Query("SELECT * FROM evaluation where user_access = ?", e.User_access)
 	// if err != nil {
