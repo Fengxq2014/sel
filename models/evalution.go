@@ -20,8 +20,8 @@ type Evaluation struct {
 	Person_count        int       `json:"person_count" form:"person_count"`
 	Picture             string    `json:"picture" form:"picture"`
 	Sample_report       string    `json:"sample_report" form:"sample_report"`
-	Current_question_id string    `json:"current_question_id" form:"current_question_id"`
-	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time"`
+	Current_question_id string    `json:"current_question_id" form:"current_question_id" xorm:"-"`
+	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time" xorm:"-"`
 }
 
 // GetEvaluation 获取测评列表
