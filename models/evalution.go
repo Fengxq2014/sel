@@ -41,7 +41,7 @@ func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
 }
 
 type Question struct {
-	Question_id    int    `json:"question_id" form:"question_id"`
+	Question_id    int    `json:"-" form:"question_id"`
 	Evaluation_id  int    `json:"evaluation_id" form:"evaluation_id"`
 	Question_index int    `json:"question_index" form:"question_index"`
 	Content        string `json:"content" form:"content"`

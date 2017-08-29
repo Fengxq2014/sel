@@ -65,7 +65,7 @@ func QryQuestion(c *gin.Context) {
 	res := models.Result{}
 	user_evaluation := models.User_evaluation{Evaluation_id: queryStr.Eid, User_id: queryStr.UID, Child_id: queryStr.CiD}
 	ue, err := user_evaluation.GetEvaluation()
-	if ue.Current_question_id == 0 {
+	if ue.Current_question_id == 0 && err == nil {
 		res.Res = 1
 		res.Msg = "当前题目已经做完！"
 		res.Data = nil
