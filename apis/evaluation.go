@@ -65,7 +65,7 @@ func QryQuestion(c *gin.Context) {
 	res := models.Result{}
 	user_evaluation := models.User_evaluation{Evaluation_id: queryStr.Eid, User_id: queryStr.UID, Child_id: queryStr.CiD}
 	ue, err := user_evaluation.GetEvaluation()
-	if ue.Current_question_id == 0 && err == nil {
+	if ue.Current_question_id == -1 && err == nil {
 		res.Res = 1
 		res.Msg = "当前题目已经做完！"
 		res.Data = nil
@@ -111,7 +111,8 @@ func UpAnswer(c *gin.Context) {
 		return
 	}
 	if queryStr.Cqid == queryStr.MaxIndex {
-		queryStr.Cqid = 0
+		queryStr.Cqid = -1
+		models.UpPersonCount()
 	}
 	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.Tr, queryStr.Rr, queryStr.Answer)
 	res := models.Result{}
@@ -139,33 +140,20 @@ func checkExistCategory(list *[]evaluationContain, category string) int {
 
 // QryMyEvaluation 查询本人测评
 func QryMyEvaluation(c *gin.Context) {
-	list := []evaluationContain{}
-	uid := c.Query("user_id")
-	if uid == "" {
+	type param struct {
+		UID int `form:"user_id" binding:"required"` //用户ID
+	}
+	//测评ID
+	var queryStr param
+	if c.BindQuery(&queryStr) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	id, err := strconv.Atoi(uid)
-	if err != nil {
-		c.Error(errors.New("参数不合法"))
-		return
-	}
-	evaluation, err := models.GetMyEvaluation(id)
+
+	evaluation, err := models.GetMyEvaluation(queryStr.UID)
 	if err != nil {
 		c.Error(errors.New("查询有误"))
 		return
 	}
-	if len(evaluation) > 0 {
-		for _, value := range evaluation {
-			index := checkExistCategory(&list, value.Category)
-			if index > -1 {
-				list[index].Evaluations = append(list[index].Evaluations, value)
-			} else {
-				eva := evaluationContain{Category: value.Category}
-				eva.Evaluations = append(eva.Evaluations, value)
-				list = append(list, eva)
-			}
-		}
-	}
-	c.JSON(http.StatusOK, models.Result{Data: &list})
+	c.JSON(http.StatusOK, models.Result{Data: evaluation})
 }

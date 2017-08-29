@@ -116,7 +116,6 @@ func GetVideo(c *gin.Context) {
 
 // QryMyCourse 获取本人课程列表
 func QryMyCourse(c *gin.Context) {
-	list := []courseContain{}
 	uid := c.Query("user_id")
 	if uid == "" {
 		c.Error(errors.New("参数为空"))
@@ -137,18 +136,5 @@ func QryMyCourse(c *gin.Context) {
 		return
 	}
 
-	if len(course) > 0 {
-		for _, value := range course {
-			index := checkExistCategorys(&list, value.Category)
-			if index > -1 {
-				list[index].Course = append(list[index].Course, value)
-			} else {
-				eva := courseContain{Category: value.Category}
-				eva.Course = append(eva.Course, value)
-				list = append(list, eva)
-			}
-		}
-	}
-
-	c.JSON(http.StatusOK, models.Result{Data: &list})
+	c.JSON(http.StatusOK, models.Result{Data: course})
 }

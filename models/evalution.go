@@ -9,34 +9,38 @@ import (
 )
 
 type Evaluation struct {
-	Evaluation_id int    `json:"evaluation_id" form:"evaluation_id"`
-	Name          string `json:"name" form:"name"`
-	Category      string `json:"category" form:"category"`
-	User_access   int    `json:"user_access" form:"user_access"`
-	Abstract      string `json:"abstract" form:"abstract"`
-	Details       string `json:"details" form:"details"`
-	Price         int    `json:"price" form:"price"`
-	Page_number   int    `json:"page_number" form:"page_number"`
-	Person_count  int    `json:"person_count" form:"person_count"`
-	Picture       string `json:"picture" form:"picture"`
-	Sample_report string `json:"sample_report" form:"sample_report"`
+	Evaluation_id       int       `json:"evaluation_id" form:"evaluation_id"`
+	Name                string    `json:"name" form:"name"`
+	Category            string    `json:"category" form:"category"`
+	User_access         int       `json:"user_access" form:"user_access"`
+	Abstract            string    `json:"abstract" form:"abstract"`
+	Details             string    `json:"details" form:"details"`
+	Price               int       `json:"price" form:"price"`
+	Page_number         int       `json:"page_number" form:"page_number"`
+	Person_count        int       `json:"person_count" form:"person_count"`
+	Picture             string    `json:"picture" form:"picture"`
+	Sample_report       string    `json:"sample_report" form:"sample_report"`
+	Current_question_id string    `json:"current_question_id" form:"current_question_id"`
+	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time"`
 }
 
 // GetEvaluation 获取测评列表
 func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT * FROM evaluation where user_access = ?", e.User_access)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var evaluation Evaluation
-		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
-		if err != nil {
-			return nil, err
-		}
-		evaluations = append(evaluations, evaluation)
-	}
+	err = db.Engine.Find(&evaluations)
+
+	// rows, err := db.SqlDB.Query("SELECT * FROM evaluation where user_access = ?", e.User_access)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+	// for rows.Next() {
+	// 	var evaluation Evaluation
+	// 	err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	evaluations = append(evaluations, evaluation)
+	// }
 	return evaluations, err
 }
 
@@ -219,14 +223,14 @@ func max(x, y int64) int64 {
 
 // GetMyEvaluation 获取本人测评
 func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT * FROM evaluation where evaluation_id in (select evaluation_id from user_evaluation where user_id=?)", user_id)
+	rows, err := db.SqlDB.Query("SELECT a.*,b.current_question_id,b.evaluation_time FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=?", user_id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var evaluation Evaluation
-		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report)
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Current_question_id, &evaluation.Evaluation_time)
 		if err != nil {
 			return nil, err
 		}
@@ -242,4 +246,11 @@ func int64TOint(id64 int64) (id int) {
 	//string到int
 	id, _ = strconv.Atoi(idstring)
 	return
+}
+
+// 更新已测评人数
+func UpPersonCount() {
+	stmt, _ := db.SqlDB.Prepare("update evaluation set person_count = person_count + 1")
+	defer stmt.Close()
+	_, _ = stmt.Exec()
 }

@@ -55,9 +55,9 @@ func InitRouter() *gin.Engine {
 	//上传儿童头像
 	router.GET("/UploadChildImg", apis.DownloadMedia)
 	//查询本人测评
-	router.POST("/QryMyEvaluation", apis.QryMyEvaluation)
+	router.GET("/QryMyEvaluation", apis.QryMyEvaluation)
 	//查询本人课程
-	router.POST("/QryMyCourse", apis.QryMyCourse)
+	router.GET("/QryMyCourse", apis.QryMyCourse)
 	return router
 }
 
