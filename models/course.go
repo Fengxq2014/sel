@@ -1,7 +1,7 @@
 package models
 
 import (
-	db "github.com/Fengxq2014/sel-xorm/database"
+	db "github.com/Fengxq2014/sel/database"
 )
 
 type Course struct {
