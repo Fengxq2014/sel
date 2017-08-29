@@ -112,7 +112,7 @@ func UpAnswer(c *gin.Context) {
 	}
 	if queryStr.Cqid == queryStr.MaxIndex {
 		queryStr.Cqid = -1
-		models.UpPersonCount()
+		models.UpPersonCount(queryStr.Eid)
 	}
 	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.Tr, queryStr.Rr, queryStr.Answer)
 	res := models.Result{}

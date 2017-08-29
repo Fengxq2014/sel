@@ -249,8 +249,8 @@ func int64TOint(id64 int64) (id int) {
 }
 
 // 更新已测评人数
-func UpPersonCount() {
-	stmt, _ := db.SqlDB.Prepare("update evaluation set person_count = person_count + 1")
+func UpPersonCount(evaluation_id int) {
+	stmt, _ := db.SqlDB.Prepare("update evaluation set person_count = person_count + 1 where evaluation_id =? ")
 	defer stmt.Close()
-	_, _ = stmt.Exec()
+	_, _ = stmt.Exec(evaluation_id)
 }
