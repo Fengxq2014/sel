@@ -62,14 +62,23 @@ func QryQuestion(c *gin.Context) {
 		return
 	}
 	var err error
-	var evaluation models.Question
-	if queryStr.Index > 1 {
-		evaluation, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index)
+	res := models.Result{}
+	user_evaluation := models.User_evaluation{Evaluation_id: queryStr.Eid, User_id: queryStr.UID, Child_id: queryStr.CiD}
+	ue, err := user_evaluation.GetEvaluation()
+	if ue.Current_question_id == 0 {
+		res.Res = 1
+		res.Msg = "当前题目已经做完！"
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	var question models.Question
+	if queryStr.Index > 0 {
+		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index)
 	} else {
-		evaluation, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
+		question, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
 	}
 
-	res := models.Result{}
 	if err != nil {
 		res.Res = 1
 		res.Msg = "获取题目失败" + err.Error()
@@ -79,26 +88,30 @@ func QryQuestion(c *gin.Context) {
 	}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = evaluation
+	res.Data = question
 	c.JSON(http.StatusOK, res)
 }
 
 // UpAnswer 上传答案
 func UpAnswer(c *gin.Context) {
 	type param struct {
-		Eid    int    `form:"evaluation_id" binding:"required"`       //测评ID
-		UID    int    `form:"user_id" binding:"required"`             //用户ID
-		Cid    int    `form:"child_id" binding:"required"`            //儿童ID
-		Cqid   int    `form:"current_question_id" binding:"required"` //当前测评题目，0为测评完成
-		Tr     string `form:"text_result"`                            //测评描述
-		Rr     string `form:"report_result"`                          //测评报告路径
-		Answer string `form:"answer" binding:"required"`              //答案
+		Eid      int    `form:"evaluation_id" binding:"required"`       //测评ID
+		UID      int    `form:"user_id" binding:"required"`             //用户ID
+		Cid      int    `form:"child_id" binding:"required"`            //儿童ID
+		Cqid     int    `form:"current_question_id" binding:"required"` //当前测评题目，0为测评完成
+		Tr       string `form:"text_result"`                            //测评描述
+		Rr       string `form:"report_result"`                          //测评报告路径
+		Answer   string `form:"answer" binding:"required"`              //答案
+		MaxIndex int    `form:"maxIndex" binding:"required"`            //题目总数
 	}
 	//测评ID
 	var queryStr param
 	if c.BindQuery(&queryStr) != nil {
 		c.Error(errors.New("参数为空"))
 		return
+	}
+	if queryStr.Cqid == queryStr.MaxIndex {
+		queryStr.Cqid = 0
 	}
 	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.Tr, queryStr.Rr, queryStr.Answer)
 	res := models.Result{}

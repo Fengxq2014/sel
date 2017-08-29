@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"strconv"
 	"time"
 
 	db "github.com/Fengxq2014/sel/database"
@@ -66,7 +67,11 @@ func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err e
 	} else {
 		question.Question_index = 1
 	}
-	err = db.SqlDB.QueryRow("SELECT question_id,evaluation_id,question_index,content FROM question where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content)
+	var Answer sql.NullString
+	err = db.SqlDB.QueryRow("SELECT a.question_id,a.evaluation_id,a.question_index,a.content,b.answer FROM question a left join user_question b on b.question_id=a.question_id where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	if Answer.Valid {
+		question.Answer = Answer.String
+	}
 	if err != nil {
 		return question, err
 	}
@@ -115,11 +120,12 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int,
 	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: Current_question_id}
 	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer}
 	//user_evaluation 有记录
-	if _, err := ue.GetEvaluation(); err == nil {
+	if selue, err := ue.GetEvaluation(); err == nil || selue.Current_question_id != 0 {
 		err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
 		}
+		uq.User_evaluation_id = selue.User_evaluation_id
 		uqq, err := uq.QryQuestion()
 		if uqq.User_question_id != 0 {
 			err = uq.UpQuestion()
@@ -137,6 +143,8 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int,
 		if id < 1 && err != nil {
 			return err
 		}
+
+		uq.User_evaluation_id = int64TOint(id)
 		id, err = uq.AddQuestion()
 		if id < 1 && err != nil {
 			return err
@@ -225,4 +233,13 @@ func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
 		evaluations = append(evaluations, evaluation)
 	}
 	return evaluations, err
+}
+
+// int64装换成int
+func int64TOint(id64 int64) (id int) {
+	//int64到string
+	idstring := strconv.FormatInt(id64, 10)
+	//string到int
+	id, _ = strconv.Atoi(idstring)
+	return
 }
