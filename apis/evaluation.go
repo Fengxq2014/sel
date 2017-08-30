@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-gonic/gin/binding"
+
 	"github.com/Fengxq2014/sel/models"
 	"github.com/gin-gonic/gin"
 )
@@ -57,7 +59,7 @@ func QryQuestion(c *gin.Context) {
 		Index int `form:"index"`                            //题目号
 	}
 	var queryStr param
-	if c.BindQuery(&queryStr) != nil {
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
@@ -106,7 +108,7 @@ func UpAnswer(c *gin.Context) {
 	}
 	//测评ID
 	var queryStr param
-	if c.BindQuery(&queryStr) != nil {
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
@@ -145,7 +147,7 @@ func QryMyEvaluation(c *gin.Context) {
 	}
 	//测评ID
 	var queryStr param
-	if c.BindQuery(&queryStr) != nil {
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}

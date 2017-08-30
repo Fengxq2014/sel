@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin/binding"
+
 	"github.com/Fengxq2014/sel/conf"
 
 	"github.com/Fengxq2014/aliyun_sms"
@@ -52,7 +54,7 @@ func Login(c *gin.Context) {
 		Head_portrait string `json:"head_portrait"`
 	}
 	var postStr param
-	if c.BindJSON(&postStr) != nil {
+	if c.ShouldBindWith(&postStr, binding.JSON) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
@@ -99,7 +101,7 @@ func AddUcAPI(c *gin.Context) {
 	}
 	Cid := time.Now().Unix()
 	var queryStr param
-	if c.BindQuery(&queryStr) != nil {
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
