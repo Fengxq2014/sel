@@ -57,7 +57,7 @@ type Question struct {
 	Question_index int    `json:"question_index" form:"question_index"`
 	Content        string `json:"content" form:"content"`
 	MaxIndex       int    `json:"maxIndex"  form:"maxIndex"`
-	Answer         string `json:"answer"  form:"answer"`
+	Answer         string `json:"answer"  form:"answer" xorm:"-"`
 }
 
 // GetQuestion 获取测评题目
@@ -91,16 +91,19 @@ func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err e
 
 // GetQuestionByIndex 根据index获取题目
 func GetQuestionByIndex(evaluation_id, index int) (question Question, err error) {
-	var maxIndex int
-	err = db.SqlDB.QueryRow("select Max(question_index) from question where evaluation_id=?", evaluation_id).Scan(&maxIndex)
+	total, err := db.Engine.Where("evaluation_id=?", evaluation_id).Count(&question)
+
+	// var maxIndex int
+	// err = db.SqlDB.QueryRow("select Max(question_index) from question where evaluation_id=?", evaluation_id).Scan(&maxIndex)
 	if err != nil {
 		return question, err
 	}
-	question.MaxIndex = maxIndex
-	if index > maxIndex {
-		index = maxIndex
+	question.MaxIndex = int64TOint(total)
+	if index > question.MaxIndex {
+		index = question.MaxIndex
 	}
 	var Answer sql.NullString
+
 	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_index where a.evaluation_id =? and a.question_index=?", evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
 	if Answer.Valid {
 		question.Answer = Answer.String
@@ -123,16 +126,20 @@ type User_question struct {
 	User_question_id   int    `json:"user_question_id" form:"user_question_id"`
 	User_evaluation_id int    `json:"user_evaluation_id" form:"user_evaluation_id"`
 	Question_id        int    `json:"question_id" form:"question_id"`
-	Answer             string `json:"answer" form:"answer"`
+	Answer             string `json:"answer" form:"answer" xorm:"null"`
 	User_id            int    `json:"user_id" form:"user_id"`
 }
 
 // UpdateUserAnswer 上传答案
-func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int, Text_result, Report_result, Answer string) (err error) {
+func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, MaxIndex int, Text_result, Report_result, Answer string) (err error) {
 	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: Current_question_id}
 	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer, User_id: User_id}
 	//user_evaluation 有记录
 	if selue, err := ue.GetEvaluation(); err == nil || selue.Current_question_id != 0 {
+		if ue.Current_question_id == MaxIndex {
+			ue.Current_question_id = -1
+			UpPersonCount(Evaluation_id)
+		}
 		err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
@@ -166,13 +173,14 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id int,
 	return err
 }
 
-// GetEvaluation 获取用户测评表
-func (ue *User_evaluation) GetEvaluation() (evaluation User_evaluation, err error) {
-	err = db.SqlDB.QueryRow("SELECT user_evaluation_id,current_question_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
-	if err != nil {
-		return evaluation, err
-	}
-	return evaluation, err
+// GetEvaluation 查询用户测评表
+func (ue *User_evaluation) GetEvaluation() (uevaluation User_evaluation, err error) {
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&uevaluation)
+	// err = db.SqlDB.QueryRow("SELECT user_evaluation_id,current_question_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
+	// if err != nil {
+	// 	return evaluation, err
+	// }
+	return uevaluation, err
 }
 
 func (ue *User_evaluation) UpdateEvaluation() (err error) {

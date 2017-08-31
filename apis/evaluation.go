@@ -112,11 +112,8 @@ func UpAnswer(c *gin.Context) {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	if queryStr.Cqid == queryStr.MaxIndex {
-		queryStr.Cqid = -1
-		models.UpPersonCount(queryStr.Eid)
-	}
-	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.Tr, queryStr.Rr, queryStr.Answer)
+
+	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.MaxIndex, queryStr.Tr, queryStr.Rr, queryStr.Answer)
 	res := models.Result{}
 	if err != nil {
 		res.Res = 1
