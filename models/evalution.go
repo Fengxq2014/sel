@@ -79,7 +79,7 @@ func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err e
 		question.Question_index = 1
 	}
 	var Answer sql.NullString
-	err = db.SqlDB.QueryRow("SELECT a.question_id,a.evaluation_id,a.question_index,a.content,b.answer FROM question a left join user_question b on b.question_id=a.question_id where evaluation_id = ? and question_index = ?", evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	err = db.SqlDB.QueryRow("SELECT a.question_id,a.evaluation_id,a.question_index,a.content,b.answer FROM question a left join user_question b on b.question_id=a.question_id and b.user_id=? where evaluation_id = ? and question_index = ?", user_id, evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
 	if Answer.Valid {
 		question.Answer = Answer.String
 	}
@@ -90,7 +90,7 @@ func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err e
 }
 
 // GetQuestionByIndex 根据index获取题目
-func GetQuestionByIndex(evaluation_id, index int) (question Question, err error) {
+func GetQuestionByIndex(evaluation_id, index, userID int) (question Question, err error) {
 	total, err := db.Engine.Where("evaluation_id=?", evaluation_id).Count(&question)
 
 	// var maxIndex int
@@ -104,7 +104,7 @@ func GetQuestionByIndex(evaluation_id, index int) (question Question, err error)
 	}
 	var Answer sql.NullString
 
-	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_index where a.evaluation_id =? and a.question_index=?", evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_index and b.user_id=? where a.evaluation_id =? and a.question_index=? ", userID, evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
 	if Answer.Valid {
 		question.Answer = Answer.String
 	}

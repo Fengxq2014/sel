@@ -76,7 +76,7 @@ func QryQuestion(c *gin.Context) {
 	}
 	var question models.Question
 	if queryStr.Index > 0 {
-		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index)
+		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index,queryStr.UID)
 	} else {
 		question, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
 	}
