@@ -109,7 +109,7 @@ func GetVideo(c *gin.Context) {
 	}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = playAuth.PlayAuth
+	res.Data = map[string]string{"playAuth": playAuth.PlayAuth, "coverurl": playAuth.VideoMeta.CoverURL}
 
 	c.JSON(http.StatusOK, res)
 }
