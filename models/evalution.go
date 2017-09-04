@@ -140,6 +140,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 			ue.Current_question_id = -1
 			UpPersonCount(Evaluation_id)
 		}
+		ue.Current_question_id = maxInt(selue.Current_question_id, ue.Current_question_id) //防止修改答案时改变当前题目序号
 		err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
@@ -157,7 +158,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 		}
 	} else {
 		//user_evaluation 无记录
-		ues := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id}
+		ues := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: 1}
 		id, err := ues.AddEvaluation()
 		if id < 1 && err != nil {
 			return err
@@ -226,11 +227,19 @@ func (uq *User_question) UpQuestion() (err error) {
 }
 
 func (uq *User_question) QryQuestion() (uqs User_question, err error) {
-	err = db.SqlDB.QueryRow("SELECT user_question_id FROM user_question where user_evaluation_id=? and question_id=?", uq.User_evaluation_id, uq.Question_id).Scan(&uqs.User_question_id)
+	_, err = db.Engine.Where("user_evaluation_id=? and question_id=? and user_id=?", uq.User_evaluation_id, uq.Question_id, uq.User_id).Get(&uqs)
+	// err = db.SqlDB.QueryRow("SELECT user_question_id FROM user_question where user_evaluation_id=? and question_id=?", uq.User_evaluation_id, uq.Question_id).Scan(&uqs.User_question_id)
 	return uqs, err
 }
 
 func max(x, y int64) int64 {
+	if x > y {
+		return x
+	}
+	return y
+}
+
+func maxInt(x, y int) int {
 	if x > y {
 		return x
 	}
