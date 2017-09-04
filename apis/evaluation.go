@@ -67,6 +67,10 @@ func QryQuestion(c *gin.Context) {
 	res := models.Result{}
 	user_evaluation := models.User_evaluation{Evaluation_id: queryStr.Eid, User_id: queryStr.UID, Child_id: queryStr.CiD}
 	ue, err := user_evaluation.GetEvaluation()
+	if err != nil {
+		c.Error(err)
+		return
+	}
 	if ue.Current_question_id == -1 && err == nil {
 		res.Res = 1
 		res.Msg = "当前题目已经做完！"
@@ -76,9 +80,13 @@ func QryQuestion(c *gin.Context) {
 	}
 	var question models.Question
 	if queryStr.Index > 0 {
-		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index,queryStr.UID)
+		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index, queryStr.UID)
 	} else {
-		question, err = models.GetQuestion(queryStr.Eid, queryStr.UID, queryStr.CiD)
+		if ue.Current_question_id > 0 {
+			question, err = models.GetQuestionByIndex(queryStr.Eid, ue.Current_question_id+1, queryStr.UID)
+		} else {
+			question, err = models.GetQuestionByIndex(queryStr.Eid, 1, queryStr.UID)
+		}
 	}
 
 	if err != nil {

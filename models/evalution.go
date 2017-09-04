@@ -61,33 +61,29 @@ type Question struct {
 }
 
 // GetQuestion 获取测评题目
-func GetQuestion(evaluation_id, user_id, child_id int) (question Question, err error) {
-	ue := User_evaluation{Evaluation_id: evaluation_id, User_id: user_id, Child_id: child_id}
-	var maxIndex int
-	err = db.SqlDB.QueryRow("select Max(question_index) from question where evaluation_id=?", evaluation_id).Scan(&maxIndex)
-	if err != nil {
-		return question, err
-	}
-	question.MaxIndex = maxIndex
-	if uee, err := ue.GetEvaluation(); err == nil {
-		if uee.Current_question_id > 0 {
-			question.Question_index = uee.Current_question_id
-		} else {
-			question.Question_index = 1
-		}
-	} else {
-		question.Question_index = 1
-	}
-	var Answer sql.NullString
-	err = db.SqlDB.QueryRow("SELECT a.question_id,a.evaluation_id,a.question_index,a.content,b.answer FROM question a left join user_question b on b.question_id=a.question_id and b.user_id=? where evaluation_id = ? and question_index = ?", user_id, evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
-	if Answer.Valid {
-		question.Answer = Answer.String
-	}
-	if err != nil {
-		return question, err
-	}
-	return question, err
-}
+// func GetQuestion(evaluation_id, user_id, child_id, currentIndex int) (question Question, err error) {
+// 	var maxIndex int
+// 	err = db.SqlDB.QueryRow("select Max(question_index) from question where evaluation_id=?", evaluation_id).Scan(&maxIndex)
+// 	if err != nil {
+// 		return question, err
+// 	}
+// 	question.MaxIndex = maxIndex
+// 	if currentIndex > 0 {
+// 		question.Question_index = currentIndex + 1
+// 	} else {
+// 		question.Question_index = 1
+// 	}
+// 	var Answer sql.NullString
+// 	err = db.SqlDB.QueryRow("SELECT a.question_id,a.evaluation_id,a.question_index,a.content,b.answer FROM question a left join user_question b on b.question_id=a.question_index and b.user_id=? where evaluation_id = ? and question_index = ?", user_id, evaluation_id, question.Question_index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+// 	fmt.Println(user_id, evaluation_id, question.Question_index)
+// 	if Answer.Valid {
+// 		question.Answer = Answer.String
+// 	}
+// 	if err != nil {
+// 		return question, err
+// 	}
+// 	return question, err
+// }
 
 // GetQuestionByIndex 根据index获取题目
 func GetQuestionByIndex(evaluation_id, index, userID int) (question Question, err error) {
