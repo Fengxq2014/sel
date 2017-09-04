@@ -10,6 +10,7 @@ import (
 	"github.com/Fengxq2014/sel/conf"
 	"github.com/Fengxq2014/sel/models"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type courseContain struct {
@@ -59,17 +60,17 @@ func QryCourse(c *gin.Context) {
 
 // UpUserCouse 更新用户课程表
 func UpUserCouse(c *gin.Context) {
-	Courseid := c.Query("course_id")
-	Userid := c.Query("user_id")
-	if Courseid == "" {
+	type param struct {
+		CID int `form:"course_id" binding:"required"` //关联课程ID
+		Uid int `form:"user_id" binding:"required"`   //关联用户ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-	if Userid == "" {
-		c.Error(errors.New("参数为空"))
-		return
-	}
-	p := models.User_course{Course_id: Courseid, User_id: Userid, Course_time: time.Now().Day()}
+
+	p := models.User_course{Course_id: queryStr.CID, User_id: queryStr.Uid, Course_time: time.Now()}
 	id, err := p.AddUsercourse()
 	res := models.Result{}
 	if id != 1 && err != nil {
@@ -137,4 +138,38 @@ func QryMyCourse(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.Result{Data: course})
+}
+
+// QryMyVideo 插入视频播放记录
+func QryMyVideo(c *gin.Context) {
+	type param struct {
+		CID int `form:"course_id" binding:"required"` //关联课程ID
+		Uid int `form:"user_id" binding:"required"`   //关联用户ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	p := models.User_course{Course_id: queryStr.CID, User_id: queryStr.Uid, Course_time: time.Now()}
+	uc, err := p.QryVideo()
+	if uc.Course_id != 0 && uc.User_id != 0 {
+		res.Res = 0
+		res.Msg = "已有记录！"
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+		return
+	} else {
+		_, err = p.InsertVideo()
+		if err != nil {
+			res.Res = 1
+			res.Msg = "插入课程表失败！" + err.Error()
+			res.Data = nil
+			c.JSON(http.StatusOK, res)
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, res)
 }
