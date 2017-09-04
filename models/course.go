@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	db "github.com/Fengxq2014/sel/database"
 )
 
@@ -37,10 +39,10 @@ func (e *Course) GetCourse() (courses []Course, err error) {
 }
 
 type User_course struct {
-	User_course_id int    `json:"user_course_id" form:"user_course_id"`
-	Course_id      string `json:"course_id" form:"course_id"`
-	User_id        string `json:"user_id" form:"user_id"`
-	Course_time    int    `json:"course_time" form:"course_time"`
+	User_course_id int       `json:"user_course_id" form:"user_course_id"`
+	Course_id      int       `json:"course_id" form:"course_id"`
+	User_id        int       `json:"user_id" form:"user_id"`
+	Course_time    time.Time `json:"course_time" form:"course_time"`
 }
 
 // AddUsercourse 更新用户课程表
@@ -69,4 +71,16 @@ func GetMyCourse(user_id int) (courses []Course, err error) {
 		courses = append(courses, course)
 	}
 	return courses, err
+}
+
+// InsertVideo 插入视频播放记录
+func (uc User_course) InsertVideo() (id int64, err error) {
+	id, err = db.Engine.Insert(&uc)
+	return
+}
+
+// QryVideo 查询用户课程表
+func (uc *User_course) QryVideo() (user_course User_course, err error) {
+	_, err = db.Engine.Where("course_id=? and user_id=?", uc.Course_id, uc.User_id).Get(&user_course)
+	return user_course, err
 }

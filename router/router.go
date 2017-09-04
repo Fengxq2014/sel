@@ -58,6 +58,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/QryMyEvaluation", apis.QryMyEvaluation)
 	//查询本人课程
 	router.GET("/QryMyCourse", apis.QryMyCourse)
+	//插入视频播放记录
+	router.GET("/VideoPlaybackRecord", apis.QryMyVideo)
 	return router
 }
 
