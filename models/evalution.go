@@ -135,7 +135,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: Current_question_id}
 	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer, User_id: User_id}
 	//user_evaluation 有记录
-	if selue, err := ue.GetEvaluation(); err == nil || selue.Current_question_id != 0 {
+	if selue, err := ue.GetEvaluation(); err == nil && selue.Current_question_id != 0 {
 		if ue.Current_question_id == MaxIndex {
 			ue.Current_question_id = -1
 			UpPersonCount(Evaluation_id)
