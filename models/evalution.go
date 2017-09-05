@@ -127,24 +127,24 @@ type User_question struct {
 }
 
 // UpdateUserAnswer 上传答案
-func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, MaxIndex int, Text_result, Report_result, Answer string) (err error) {
+func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, MaxIndex int, Answer string) (err error) {
 	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: Current_question_id}
 	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer, User_id: User_id}
 	//user_evaluation 有记录
 	if selue, err := ue.GetEvaluation(); err == nil && selue.Current_question_id != 0 {
+		ue.Current_question_id = maxInt(selue.Current_question_id, ue.Current_question_id) //防止修改答案时改变当前题目序号
 		if ue.Current_question_id == MaxIndex {
 			ue.Current_question_id = -1
 			UpPersonCount(Evaluation_id)
 		}
-		ue.Current_question_id = maxInt(selue.Current_question_id, ue.Current_question_id) //防止修改答案时改变当前题目序号
-		err := ue.UpdateEvaluation()
+		_, err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
 		}
 		//uq.User_evaluation_id = selue.User_evaluation_id
 		uqq, err := uq.QryQuestion()
 		if uqq.User_question_id != 0 {
-			err = uq.UpQuestion()
+			_, err = uq.UpQuestion()
 			return err
 		} else {
 			_, err := uq.AddQuestion()
@@ -159,7 +159,6 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 		if id < 1 && err != nil {
 			return err
 		}
-
 		//uq.User_evaluation_id = int64TOint(id)
 		id, err = uq.AddQuestion()
 		if id < 1 && err != nil {
@@ -180,46 +179,51 @@ func (ue *User_evaluation) GetEvaluation() (uevaluation User_evaluation, err err
 	return uevaluation, err
 }
 
-func (ue *User_evaluation) UpdateEvaluation() (err error) {
-	stmt, err := db.SqlDB.Prepare("update user_evaluation set current_question_id=?,text_result=?,report_result=?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	rs, err := stmt.Exec(ue.Current_question_id, ue.Text_result, ue.Report_result)
-	if err != nil {
-		return err
-	}
-	_, err = rs.RowsAffected()
-	if err != nil {
-		return err
-	}
-	return nil
+func (ue *User_evaluation) UpdateEvaluation() (id int64, err error) {
+	id, err = db.Engine.Cols("current_question_id").Update(ue, &User_evaluation{Evaluation_id: ue.Evaluation_id, User_id: ue.User_id, Child_id: ue.Child_id})
+	// stmt, err := db.SqlDB.Prepare("update user_evaluation set current_question_id=?,text_result=?,report_result=?")
+	// if err != nil {
+	// 	return 0, err
+	// }
+	// defer stmt.Close()
+	// rs, err := stmt.Exec(ue.Current_question_id, ue.Text_result, ue.Report_result)
+	// if err != nil {
+	// 	return 0, err
+	// }
+	// _, err = rs.RowsAffected()
+	// if err != nil {
+	// 	return 0, err
+	// }
+	return id, err
 }
 
 func (ue *User_evaluation) AddEvaluation() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO user_evaluation(evaluation_id, user_id,child_id,evaluation_time,current_question_id,text_result,report_result) VALUES (?, ?, ?, ?, ?, ?, ?)", ue.Evaluation_id, ue.User_id, ue.Child_id, time.Now(), ue.Current_question_id, ue.Text_result, ue.Report_result)
-	if err != nil {
-		return 0, err
-	}
-	id, err = rs.LastInsertId()
+	ue.Evaluation_time = time.Now()
+	id, err = db.Engine.Insert(ue)
+	// rs, err := db.SqlDB.Exec("INSERT INTO user_evaluation(evaluation_id, user_id,child_id,evaluation_time,current_question_id,text_result,report_result) VALUES (?, ?, ?, ?, ?, ?, ?)", ue.Evaluation_id, ue.User_id, ue.Child_id, time.Now(), ue.Current_question_id, ue.Text_result, ue.Report_result)
+	// if err != nil {
+	// 	return 0, err
+	// }
+	// id, err = rs.LastInsertId()
 	return
 }
 
 func (uq *User_question) AddQuestion() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO user_question(user_evaluation_id,question_id,answer,user_id) VALUES (?, ?, ?,?)", uq.User_evaluation_id, uq.Question_id, uq.Answer, uq.User_id)
-	if err != nil {
-		return 0, err
-	}
-	id, err = rs.LastInsertId()
+	id, err = db.Engine.Insert(uq)
+	// rs, err := db.SqlDB.Exec("INSERT INTO user_question(user_evaluation_id,question_id,answer,user_id) VALUES (?, ?, ?,?)", uq.User_evaluation_id, uq.Question_id, uq.Answer, uq.User_id)
+	// if err != nil {
+	// 	return 0, err
+	// }
+	// id, err = rs.LastInsertId()
 	return
 }
 
-func (uq *User_question) UpQuestion() (err error) {
-	stmt, err := db.SqlDB.Prepare("update user_question set answer=? where user_evaluation_id=? and question_id=? and user_id=?")
-	defer stmt.Close()
-	_, err = stmt.Exec(uq.Answer, uq.User_evaluation_id, uq.Question_id, uq.User_id)
-	return err
+func (uq *User_question) UpQuestion() (id int64, err error) {
+	id, err = db.Engine.Cols("answer").Update(uq, &User_question{User_evaluation_id: uq.User_evaluation_id, Question_id: uq.Question_id, User_id: uq.User_id})
+	// stmt, err := db.SqlDB.Prepare("update user_question set answer=? where user_evaluation_id=? and question_id=? and user_id=?")
+	// defer stmt.Close()
+	// _, err = stmt.Exec(uq.Answer, uq.User_evaluation_id, uq.Question_id, uq.User_id)
+	return id, err
 }
 
 func (uq *User_question) QryQuestion() (uqs User_question, err error) {
@@ -269,7 +273,7 @@ func int64TOint(id64 int64) (id int) {
 	return
 }
 
-// 更新已测评人数
+// UpPersonCount 更新已测评人数
 func UpPersonCount(evaluation_id int) {
 	stmt, _ := db.SqlDB.Prepare("update evaluation set person_count = person_count + 1 where evaluation_id =? ")
 	defer stmt.Close()

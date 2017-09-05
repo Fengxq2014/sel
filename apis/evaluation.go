@@ -121,7 +121,7 @@ func UpAnswer(c *gin.Context) {
 		return
 	}
 
-	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.MaxIndex, queryStr.Tr, queryStr.Rr, queryStr.Answer)
+	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.MaxIndex, queryStr.Answer)
 	res := models.Result{}
 	if err != nil {
 		res.Res = 1
