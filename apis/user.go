@@ -32,7 +32,7 @@ func QryUserAPI(c *gin.Context) {
 	p := models.User{Openid: cid}
 	user, err := p.GetUserByOpenid()
 	res := models.Result{}
-	if err != nil {
+	if err != nil || user.Openid == "" {
 		c.Error(errors.New("没有该用户信息请登录！"))
 		return
 	}
