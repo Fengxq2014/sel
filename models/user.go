@@ -152,7 +152,7 @@ func (uc *Uc_relation) Getchild() (child []Child, err error) {
 
 // UpChild 更新儿童信息
 func (child *Child) UpChild() (id int64, err error) {
-	id, err = db.Engine.Update(child, &Child{Child_id: child.Child_id})
+	id, err = db.Engine.Cols("name", "gender", "birth_date", "head_portrait").Update(child, &Child{Child_id: child.Child_id})
 	// rs, err := db.SqlDB.Exec("update child set name=? ,gender=? ,birth_date=? ,head_portrait=? where child_id=?", &child.Name, &child.Gender, &child.Birth_date, &child.Head_portrait, &child.Child_id)
 
 	// if err != nil {

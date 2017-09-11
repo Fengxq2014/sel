@@ -99,7 +99,7 @@ func AddUcAPI(c *gin.Context) {
 		CCID          int64  `form:"child_id"`
 		Head_portrait string `form:"head_portrait"`
 	}
-	Cid := time.Now().Unix()
+
 	var queryStr param
 	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
@@ -121,6 +121,8 @@ func AddUcAPI(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 		return
 	}
+
+	Cid := time.Now().Unix()
 	err = models.InsertChild(queryStr.UID, Cid, queryStr.Re, queryStr.Ggid, queryStr.Head_portrait, queryStr.Name, t)
 	if err != nil {
 		c.Error(errors.New("插入儿童信息失败！"))
