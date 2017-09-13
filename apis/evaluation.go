@@ -164,3 +164,40 @@ func QryMyEvaluation(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Result{Data: evaluation})
 }
+
+// QryReport 查看报告
+func QryReport(c *gin.Context) {
+	type param struct {
+		EID int `form:"evaluation_id" binding:"required"` //测评ID
+		UID int `form:"evaluation_id" binding:"required"` //用户ID
+		CID int `form:"child_id" binding:"required"`      //儿童ID
+	}
+
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1}
+	err := models.UpPersonCount(queryStr.EID)
+	if err != nil {
+		res.Res = 1
+		res.Msg = err.Error()
+		res.Data = ""
+		c.JSON(http.StatusOK, res)
+	}
+	_, err = ue.UpdateEvaluation()
+	if err != nil {
+		res.Res = 1
+		res.Msg = err.Error()
+		res.Data = ""
+		c.JSON(http.StatusOK, res)
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = ""
+	c.JSON(http.StatusOK, res)
+}

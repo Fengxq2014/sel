@@ -133,10 +133,10 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 	//user_evaluation 有记录
 	if selue, err := ue.GetEvaluation(); err == nil && selue.Current_question_id != 0 {
 		ue.Current_question_id = maxInt(selue.Current_question_id, ue.Current_question_id) //防止修改答案时改变当前题目序号
-		if ue.Current_question_id == MaxIndex {
-			ue.Current_question_id = -1
-			UpPersonCount(Evaluation_id)
-		}
+		// if ue.Current_question_id == MaxIndex {
+		// 	ue.Current_question_id = -1
+		// 	UpPersonCount(Evaluation_id)
+		// }
 		_, err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
@@ -274,8 +274,9 @@ func int64TOint(id64 int64) (id int) {
 }
 
 // UpPersonCount 更新已测评人数
-func UpPersonCount(evaluation_id int) {
+func UpPersonCount(evaluation_id int) (err error) {
 	stmt, _ := db.SqlDB.Prepare("update evaluation set person_count = person_count + 1 where evaluation_id =? ")
 	defer stmt.Close()
-	_, _ = stmt.Exec(evaluation_id)
+	_, err = stmt.Exec(evaluation_id)
+	return
 }
