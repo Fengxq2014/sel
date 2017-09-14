@@ -100,7 +100,7 @@ func GetQuestionByIndex(evaluation_id, index, userID int) (question Question, er
 	}
 	var Answer sql.NullString
 
-	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_index and b.user_id=? where a.evaluation_id =? and a.question_index=? ", userID, evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_index and b.user_id=?  and b.user_evaluation_id=a.evaluation_id where a.evaluation_id =? and a.question_index=? ", userID, evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
 	if Answer.Valid {
 		question.Answer = Answer.String
 	}

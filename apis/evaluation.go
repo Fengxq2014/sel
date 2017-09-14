@@ -169,7 +169,7 @@ func QryMyEvaluation(c *gin.Context) {
 func QryReport(c *gin.Context) {
 	type param struct {
 		EID int `form:"evaluation_id" binding:"required"` //测评ID
-		UID int `form:"evaluation_id" binding:"required"` //用户ID
+		UID int `form:"user_id" binding:"required"`       //用户ID
 		CID int `form:"child_id" binding:"required"`      //儿童ID
 	}
 
