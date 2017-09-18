@@ -20,6 +20,8 @@ func InitRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(handleErrors)
 	router.Static("/front", "./front")
+	router.StaticFile("/MP_verify_wKkoD2xPfCrtcZer.txt", "./front/MP_verify_wKkoD2xPfCrtcZer.txt")
+
 	router.GET("/", apis.IndexApi)
 	// authorized := router.Group("/")
 	// authorized.Use(jwtAuth)
