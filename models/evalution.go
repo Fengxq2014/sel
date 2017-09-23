@@ -20,6 +20,7 @@ type Evaluation struct {
 	Person_count        int       `json:"person_count" form:"person_count"`
 	Picture             string    `json:"picture" form:"picture"`
 	Sample_report       string    `json:"sample_report" form:"sample_report"`
+	Key_name            string    `json:"key_name" form:"key_name"`
 	MaxIndex            int64     `json:"maxIndex" form:"maxIndex" xorm:"-"`
 	Current_question_id string    `json:"current_question_id" form:"current_question_id" xorm:"-"`
 	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time" xorm:"-"`
@@ -255,7 +256,7 @@ func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
 	defer rows.Close()
 	for rows.Next() {
 		var evaluation Evaluation
-		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Current_question_id, &evaluation.Evaluation_time)
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Key_name, &evaluation.Current_question_id, &evaluation.Evaluation_time)
 		if err != nil {
 			return nil, err
 		}
