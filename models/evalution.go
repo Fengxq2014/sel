@@ -142,7 +142,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 		if err != nil {
 			return err
 		}
-		//uq.User_evaluation_id = selue.User_evaluation_id
+		uq.User_evaluation_id = selue.User_evaluation_id
 		uqq, err := uq.QryQuestion()
 		if uqq.User_question_id != 0 {
 			_, err = uq.UpQuestion()
@@ -160,7 +160,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 		if id < 1 && err != nil {
 			return err
 		}
-		//uq.User_evaluation_id = int64TOint(id)
+		uq.User_evaluation_id = int64TOint(id)
 		id, err = uq.AddQuestion()
 		if id < 1 && err != nil {
 			return err

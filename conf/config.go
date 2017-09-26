@@ -25,6 +25,7 @@ type config struct {
 	Host              string
 	Mch_id            string
 	Mch_name          string
+	Key               string
 }
 
 var Config *config

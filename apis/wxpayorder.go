@@ -23,13 +23,15 @@ type UnifiedOrderRequest struct {
 	XMLName struct{} `xml:"xml" json:"-"`
 
 	// 必选参数
-	Body           string `xml:"body"`             // 商品或支付单简要描述
-	OutTradeNo     string `xml:"out_trade_no"`     // 商户系统内部的订单号,32个字符内、可包含字母, 其他说明见商户订单号
-	TotalFee       int64  `xml:"total_fee"`        // 订单总金额，单位为分，详见支付金额
-	SpbillCreateIP string `xml:"spbill_create_ip"` // APP和网页支付提交用户端ip，Native支付填调用微信支付API的机器IP。
-	NotifyURL      string `xml:"notify_url"`       // 接收微信支付异步通知回调地址，通知url必须为直接可访问的url，不能携带参数。
-	TradeType      string `xml:"trade_type"`       // 取值如下：JSAPI，NATIVE，APP，详细说明见参数规定
-	Sign           string `xml:"sign"`             // 通过签名算法计算得出的签名值，详见签名生成算法
+	AppID          string  `xml:"appid"`            // 微信支付分配的公众账号ID（企业号corpid即为此appId）
+	Mch_id         string  `xml:"mch_id"`           // 微信支付分配的商户号
+	Body           string  `xml:"body"`             // 商品或支付单简要描述
+	OutTradeNo     string  `xml:"out_trade_no"`     // 商户系统内部的订单号,32个字符内、可包含字母, 其他说明见商户订单号
+	TotalFee       float64 `xml:"total_fee"`        // 订单总金额，单位为分，详见支付金额
+	SpbillCreateIP string  `xml:"spbill_create_ip"` // APP和网页支付提交用户端ip，Native支付填调用微信支付API的机器IP。
+	NotifyURL      string  `xml:"notify_url"`       // 接收微信支付异步通知回调地址，通知url必须为直接可访问的url，不能携带参数。
+	TradeType      string  `xml:"trade_type"`       // 取值如下：JSAPI，NATIVE，APP，详细说明见参数规定
+	Sign           string  `xml:"sign"`             // 通过签名算法计算得出的签名值，详见签名生成算法
 
 	// 可选参数
 	DeviceInfo string `xml:"device_info"` // 终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传"WEB"
@@ -60,13 +62,14 @@ type UnifiedOrderResponse struct {
 	Trade_type  string `xml:"trade_type"`
 }
 
-func wxPayOrder(c *gin.Context) {
+// WxPayOrder 生成支付订单
+func WxPayOrder(c *gin.Context) {
 	type param struct {
-		Name           string `form:"name" binding:"required"`      //课程名称
-		CourseId       string `form:"course_id" binding:"required"` //课程ID
-		Price          int64  `form:"course_id" binding:"required"` //价格
-		SpbillCreateIP string `form:"course_id" binding:"required"` //APP和网页支付提交用户端ip
-		OpenId         string `form:"openid" binding:"required"`    //APP和网页支付提交用户端ip
+		Name           string  `form:"name" binding:"required"`           //课程名称
+		CourseId       string  `form:"course_id" binding:"required"`      //课程ID
+		Price          float64 `form:"price" binding:"required"`          //价格
+		SpbillCreateIP string  `form:"SpbillCreateIP" binding:"required"` //APP和网页支付提交用户端ip
+		OpenId         string  `form:"openid" binding:"required"`         //用户openid
 	}
 
 	var queryStr param
@@ -75,6 +78,8 @@ func wxPayOrder(c *gin.Context) {
 		return
 	}
 	order := UnifiedOrderRequest{}
+	order.AppID = conf.Config.WXAppID
+	order.Mch_id = conf.Config.Mch_id
 	order.Body = queryStr.Name                                                         //课程名
 	order.OutTradeNo = "sel" + time.Now().Format("20060102150405") + queryStr.CourseId //课程号
 	order.TotalFee = queryStr.Price
@@ -94,25 +99,39 @@ func wxPayOrder(c *gin.Context) {
 	order.GoodsTag = ""
 	order.ProductId = ""
 	order.LimitPay = ""
-	order.SubOpenId = ""
-	order.SceneInfo = ""
 
 	var m map[string]interface{}
 	m = make(map[string]interface{}, 0)
 	m["appid"] = conf.Config.WXAppID
-	m["body"] = order.Body
 	m["mch_id"] = conf.Config.Mch_id
+	m["body"] = order.Body
+	m["out_trade_no"] = order.OutTradeNo
+	m["total_fee"] = order.TotalFee
+	m["spbill_create_ip"] = order.SpbillCreateIP
 	m["notify_url"] = order.NotifyURL
 	m["trade_type"] = order.TradeType
-	m["out_trade_no"] = order.OutTradeNo
-	m["spbill_create_ip"] = order.SpbillCreateIP
-	m["total_fee"] = order.TotalFee
-	m["nonce_str"] = order.NonceStr
-	order.Sign = wxpayCalcSign(m, "wxpay_api_key")
+	m["openid"] = order.OpenId
 
+	m["device_info"] = order.DeviceInfo
+	m["nonce_str"] = order.NonceStr
+	m["sign_type"] = order.SignType
+	m["detail"] = order.Detail
+	m["attach"] = order.Attach
+	m["fee_type"] = order.FeeType
+	m["time_start"] = order.TimeStart
+	m["time_expire"] = order.TimeExpire
+	m["goods_tag"] = order.GoodsTag
+	m["product_id"] = order.ProductId
+	m["limit_pay"] = order.LimitPay
+	order.Sign = wxpayCalcSign(m, conf.Config.Key)
+
+	res := models.Result{}
 	bytes_req, err := xml.Marshal(order)
 	if err != nil {
-		fmt.Println("以xml形式编码发送错误, 原因:", err)
+		res.Res = 1
+		res.Msg = "以xml形式编码发送错误, 原因:" + err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
 		return
 	}
 
@@ -124,7 +143,10 @@ func wxPayOrder(c *gin.Context) {
 	//发送unified order请求.
 	req, err := http.NewRequest("POST", "https://api.mch.weixin.qq.com/pay/unifiedorder", bytes.NewReader(bytes_req))
 	if err != nil {
-		fmt.Println("New Http Request发生错误，原因:", err)
+		res.Res = 1
+		res.Msg = "New Http Request发生错误，原因:" + err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
 		return
 	}
 	req.Header.Set("Accept", "application/xml")
@@ -134,25 +156,34 @@ func wxPayOrder(c *gin.Context) {
 	cc := http.Client{}
 	resp, _err := cc.Do(req)
 	if _err != nil {
-		fmt.Println("请求微信支付统一下单接口发送错误, 原因:", _err)
+		res.Res = 1
+		res.Msg = "请求微信支付统一下单接口发送错误, 原因:" + _err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
 		return
 	}
 	//------------------到这里统一下单接口就已经执行完成了-------------------
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("解析返回body错误", err)
+		res.Res = 1
+		res.Msg = "解析返回body错误" + err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
 		return
 	}
 	xmlResp := UnifiedOrderResponse{}
 	_err = xml.Unmarshal(respBytes, &xmlResp)
 	//处理return code.
 	if xmlResp.Return_code == "FAIL" {
-		fmt.Println("微信支付统一下单不成功，原因:", xmlResp.Return_msg, " str_req-->", str_req)
+		res.Res = 1
+		res.Msg = "微信支付统一下单不成功，原因:" + xmlResp.Return_msg
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Result{Data: resp})
+	c.JSON(http.StatusOK, models.Result{Data: xmlResp})
 }
 
 // wxpayCalcSign 微信支付 下单签名

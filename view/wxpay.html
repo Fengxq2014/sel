@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <meta name="viewport" content="user-scalable=no">
+
+    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+    <title>SEL商城</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <meta name="viewport" content="user-scalable=no">
+
+    <link rel="stylesheet" type="text/css" href="../../bootstrap-4.0.0-alpha.6-dist/bootstrap-4.0.0-alpha.6-dist/css/bootstrap.min.css">
+    <script src="../../bootstrap-4.0.0-alpha.6-dist/jquery-3.0.0.min.js"></script>
+    <script src="../../bootstrap-4.0.0-alpha.6-dist/bootstrap-4.0.0-alpha.6-dist/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+    <div class="container" style="margin-top: 60px">
+
+        <input hidden type="text" id="prepay_id" value={{.prepay_id}}>
+        <input hidden type="text" id="appId" value={{.appId}}>
+        <input hidden type="text" id="configtimeStamp" value={{.configtimeStamp}}>
+        <input hidden type="text" id="timeStamp" value={{.timeStamp}}>
+        <input hidden type="text" id="nonceStr" value={{.nonceStr}}>
+        <input hidden type="text" id="paySign" value={{.paySign}}>
+        <input hidden type="text" id="signature" value={{.signature}}>
+
+        <div class="center-block" style="width: 70%;margin-top: 10%">
+            <h1 class="text-center" style="font-size: 4rem;color: #2CB618"> 微信交易请求申请 </h1>
+            <img class="center-block" src="../../static/images/wx-tishi.png"
+                 style="margin-top: 60px;height: 300px;width: 300px"/>
+            <h1 class="text-center" style="font-size: 3.5rem;margin-top: 30px">正在提起微信订单</h1>
+            <h1 class="text-center" style="font-size: 3rem;color:#7d7d7d;margin-top: 20px">请勿关闭该页面</h1>
+        </div>
+
+    </div>
+
+
+    <script>
+
+        var prepay_id = document.getElementById("prepay_id").value;
+        var configtimeStamp = document.getElementById("configtimeStamp").value;
+        var timeStamp = document.getElementById("timeStamp").value;
+        var nonceStr = document.getElementById("nonceStr").value;
+        var paySign = document.getElementById("paySign").value;
+        var signature = document.getElementById("signature").value;
+
+        var appId = document.getElementById("appId").value;
+
+        wx.config({
+            debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: appId, // 必填，公众号的唯一标识
+            timestamp: configtimeStamp, // 必填，生成签名的时间戳
+            nonceStr: nonceStr, // 必填，生成签名的随机串
+            signature: signature,// 必填，签名
+            jsApiList: ['chooseWXPay'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+        });
+
+        wx.ready(function () {
+            // config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+
+            wx.chooseWXPay({
+                timestamp: timeStamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+                nonceStr: nonceStr, // 支付签名随机串，不长于 32 位
+                package: "prepay_id=" + prepay_id, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=***）
+                signType: 'MD5', // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+                paySign: paySign, // 支付签名
+                success: function (res) {
+                    // 支付成功后的回调函数
+                    alert("支付成功" + JSON.stringify(res));
+                    location.href = "http://www.rollingbear.cn/wx_shop_cart/cart?showAll=1";
+                },
+                fail: function (res) {
+                    console.log("支付失败-----" + res);
+                    alert("支付失败" + JSON.stringify(res));
+                },
+                cancel: function (res) {
+                    alert("用户取消支付");
+                    location.href = "http://www.rollingbear.cn/wx_shop_cart/cart";
+                }
+            });
+
+//            WeixinJSBridge.invoke('getBrandWCPayRequest', {
+//                "appId": appId,     //公众号名称，由商户传入
+//                "timeStamp": timeStamp,         //时间戳，自1970年以来的秒数
+//                "nonceStr": nonceStr, //随机串
+//                "package": "prepay_id=" + prepay_id,
+//                "signType": "MD5",         //微信签名方式
+//                "paySign": paySign //微信签名
+//            }, function (res) {
+//                if (res.err_msg == "get_brand_wcpay_request:ok") {
+//                    alert("微信支付成功!");
+//                } else if (res.err_msg == "get_brand_wcpay_request:cancel") {
+//                    alert("用户取消支付!");
+//                } else {
+//                    alert(JSON.stringify(res));
+//                }
+//                // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+//                //因此微信团队建议，当收到ok返回时，向商户后台询问是否收到交易成功的通知，若收到通知，前端展示交易成功的界面；若此时未收到通知，商户后台主动调用查询订单接口，查询订单的当前状态，并反馈给前端展示相应的界面。
+//            });
+
+
+//            function onBridgeReady() {
+//
+//                WeixinJSBridge.invoke(
+//                        'getBrandWCPayRequest', {
+////                            "appId": appId,     //公众号名称，由商户传入
+////                            "timeStamp": timeStamp,         //时间戳，自1970年以来的秒数
+////                            "nonceStr": nonceStr, //随机串
+////                            "package": "prepay_id=" + prepay_id,
+////                            "signType": "MD5",         //微信签名方式
+////                            "paySign": paySign //微信签名
+//                        },
+//                        function (res) {
+//                            console.log("res.err_msg-----" + res.err_msg);
+//                            // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回 ok，但并不保证它绝对可靠。
+//                            if (res.err_msg == "get_brand_wcpay_request：ok") {
+//                                console.log("res.err_msg--okokok---");
+//                            }
+//                        }
+//                );
+//            }
+//
+//            if (typeof WeixinJSBridge == "undefined") {
+//                console.log("res.err_msg-----1");
+//                if (document.addEventListener) {
+//                    console.log("res.err_msg-----2");
+//                    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+//                } else if (document.attachEvent) {
+//                    console.log("res.err_msg-----3");
+//                    document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+//                    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+//                }
+//            } else {
+//                console.log("res.err_msg-----4");
+//                onBridgeReady();
+//            }
+//
+        });
+
+        wx.error(function (res) {
+            // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+            alert("wx config失败" + JSON.stringify(res));
+        });
+
+
+    </script>
+</body>
+</html>
