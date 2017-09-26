@@ -83,7 +83,7 @@ func WxPayOrder(c *gin.Context) {
 	order.Body = queryStr.Name                                                         //课程名
 	order.OutTradeNo = "sel" + time.Now().Format("20060102150405") + queryStr.CourseId //课程号
 	order.TotalFee = queryStr.Price
-	order.SpbillCreateIP = queryStr.SpbillCreateIP
+	order.SpbillCreateIP = c.ClientIP()
 	order.NotifyURL = "http://sel.bless-info.com"
 	order.TradeType = "JSAPI"
 	order.OpenId = queryStr.OpenId
