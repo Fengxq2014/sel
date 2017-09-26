@@ -65,11 +65,10 @@ type UnifiedOrderResponse struct {
 // WxPayOrder 生成支付订单
 func WxPayOrder(c *gin.Context) {
 	type param struct {
-		Name           string  `form:"name" binding:"required"`           //课程名称
-		CourseId       string  `form:"course_id" binding:"required"`      //课程ID
-		Price          float64 `form:"price" binding:"required"`          //价格
-		SpbillCreateIP string  `form:"SpbillCreateIP" binding:"required"` //APP和网页支付提交用户端ip
-		OpenId         string  `form:"openid" binding:"required"`         //用户openid
+		Name     string  `form:"name" binding:"required"`      //课程名称
+		CourseId string  `form:"course_id" binding:"required"` //课程ID
+		Price    float64 `form:"price" binding:"required"`     //价格
+		OpenId   string  `form:"openid" binding:"required"`    //用户openid
 	}
 
 	var queryStr param
