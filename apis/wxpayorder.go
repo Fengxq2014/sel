@@ -94,13 +94,18 @@ func WxPayOrder(c *gin.Context) {
 	order.OpenId = queryStr.OpenId
 
 	order.DeviceInfo = ""
-	order.NonceStr = time.LoadLocation().Now().Format("20060102150405")
+	order.NonceStr = time.Now().Format("20060102150405")
 	order.SignType = "MD5"
 	order.Detail = ""
 	order.Attach = ""
 	order.FeeType = "CNY"
-	order.TimeStart = time.Now().Format("20060102150405")
-	order.TimeExpire = time.Now().Add(time.Minute * 5).Format("20060102150405")
+
+	local2, err2 := time.LoadLocation("PRC") //服务器设置的时区
+	if err2 != nil {
+		fmt.Println(err2)
+	}
+	order.TimeStart = time.Now().In(local2).Format("20060102150405")
+	order.TimeExpire = time.Now().In(local2).Add(time.Minute * 5).Format("20060102150405")
 	order.GoodsTag = ""
 	order.ProductId = ""
 	order.LimitPay = ""
