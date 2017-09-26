@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"sort"
 	"strings"
@@ -79,16 +80,21 @@ func WxPayOrder(c *gin.Context) {
 	order := UnifiedOrderRequest{}
 	order.AppID = conf.Config.WXAppID
 	order.Mch_id = conf.Config.Mch_id
-	order.Body = queryStr.Name                                                         //课程名
-	order.OutTradeNo = "sel" + time.Now().Format("20060102150405") + queryStr.CourseId //课程号
+	order.Body = queryStr.Name
+	order.OutTradeNo = "sel" + time.Now().Format("20060102150405") + queryStr.CourseId
 	order.TotalFee = queryStr.Price
-	order.SpbillCreateIP = c.ClientIP()
-	order.NotifyURL = "http://sel.bless-info.com"
+	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
+	order.SpbillCreateIP = ip
+	if err != nil {
+		c.Error(errors.New("解析客户端地址失败"))
+		return
+	}
+	order.NotifyURL = conf.Config.Host
 	order.TradeType = "JSAPI"
 	order.OpenId = queryStr.OpenId
 
 	order.DeviceInfo = ""
-	order.NonceStr = time.Now().Format("20060102150405")
+	order.NonceStr = time.LoadLocation().Now().Format("20060102150405")
 	order.SignType = "MD5"
 	order.Detail = ""
 	order.Attach = ""
