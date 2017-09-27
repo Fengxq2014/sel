@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"sort"
@@ -94,18 +95,18 @@ func WxPayOrder(c *gin.Context) {
 	order.OpenId = queryStr.OpenId
 
 	order.DeviceInfo = ""
-	order.NonceStr = time.Now().Format("20060102150405")
+	order.NonceStr = time.Now().Format("20060102150405") + randSeq(10)
 	order.SignType = "MD5"
 	order.Detail = ""
 	order.Attach = ""
 	order.FeeType = "CNY"
 
-	local2, err2 := time.LoadLocation("PRC") //服务器设置的时区
-	if err2 != nil {
-		fmt.Println(err2)
+	local, err := time.LoadLocation("PRC") //服务器设置的时区
+	if err != nil {
+		fmt.Println(err)
 	}
-	order.TimeStart = time.Now().In(local2).Format("20060102150405")
-	order.TimeExpire = time.Now().In(local2).Add(time.Minute * 5).Format("20060102150405")
+	order.TimeStart = time.Now().In(local).Format("20060102150405")
+	order.TimeExpire = time.Now().In(local).Add(time.Minute * 5).Format("20060102150405")
 	order.GoodsTag = ""
 	order.ProductId = ""
 	order.LimitPay = ""
@@ -228,4 +229,14 @@ func wxpayCalcSign(mReq map[string]interface{}, key string) (sign string) {
 	cipherStr := md5Ctx.Sum(nil)
 	upperSign := strings.ToUpper(hex.EncodeToString(cipherStr))
 	return upperSign
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
