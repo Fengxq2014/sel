@@ -160,7 +160,8 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 		if id < 1 && err != nil {
 			return err
 		}
-		uq.User_evaluation_id = int64TOint(id)
+		selues, err := ue.GetEvaluation()
+		uq.User_evaluation_id = selues.User_evaluation_id
 		id, err = uq.AddQuestion()
 		if id < 1 && err != nil {
 			return err

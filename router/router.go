@@ -66,6 +66,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/QryReport", apis.QryReport)
 	//生成支付订单
 	router.GET("/wxPayOrder", apis.WxPayOrder)
+	//微信支付回调
+	router.GET("/wxPayCallBack", apis.WxPayCallBack)
 	return router
 }
 

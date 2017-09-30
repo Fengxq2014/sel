@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -62,6 +63,7 @@ type UnifiedOrderResponse struct {
 	Result_code string `xml:"result_code"`
 	Prepay_id   string `xml:"prepay_id"`
 	Trade_type  string `xml:"trade_type"`
+	TimeStamp   string `xml:"timeStamp"`
 }
 
 // WxPayOrder 生成支付订单
@@ -71,6 +73,7 @@ func WxPayOrder(c *gin.Context) {
 		CourseId string  `form:"course_id" binding:"required"` //课程ID
 		Price    float64 `form:"price" binding:"required"`     //价格
 		OpenId   string  `form:"openid" binding:"required"`    //用户openid
+		Uid      int     `form:"user_id" binding:"required"`   //关联用户ID
 	}
 
 	var queryStr param
@@ -90,7 +93,7 @@ func WxPayOrder(c *gin.Context) {
 		c.Error(errors.New("解析客户端地址失败"))
 		return
 	}
-	order.NotifyURL = conf.Config.Host
+	order.NotifyURL = conf.Config.CallBack
 	order.TradeType = "JSAPI"
 	order.OpenId = queryStr.OpenId
 
@@ -98,7 +101,7 @@ func WxPayOrder(c *gin.Context) {
 	order.NonceStr = time.Now().Format("20060102150405") + randSeq(10)
 	order.SignType = "MD5"
 	order.Detail = ""
-	order.Attach = ""
+	order.Attach = queryStr.CourseId + "|" + strconv.Itoa(queryStr.Uid)
 	order.FeeType = "CNY"
 
 	local, err := time.LoadLocation("PRC") //服务器设置的时区
@@ -194,6 +197,18 @@ func WxPayOrder(c *gin.Context) {
 		return
 	}
 
+	xmlResp.TimeStamp = strconv.FormatInt(time.Now().Unix(), 10)
+
+	var mm map[string]interface{}
+	mm = make(map[string]interface{}, 0)
+	mm["appId"] = conf.Config.WXAppID
+	mm["timeStamp"] = xmlResp.TimeStamp
+	mm["nonceStr"] = time.Now().Format("20060102150405") + randSeq(10)
+	mm["package"] = "prepay_id=" + xmlResp.Prepay_id
+	mm["signType"] = "MD5"
+
+	xmlResp.Sign = wxpayCalcSign(mm, conf.Config.Key)
+
 	c.JSON(http.StatusOK, models.Result{Data: xmlResp})
 }
 
@@ -239,4 +254,45 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+//计算支付签名 跟下单签名不同的地方在于 最后一个字符串连接没有&
+func wxpaySign(mReq map[string]interface{}, key string) string {
+	//STEP 1, 对key进行升序排序.
+	sorted_keys := make([]string, 0)
+	for k, _ := range mReq {
+		sorted_keys = append(sorted_keys, k)
+	}
+
+	sort.Strings(sorted_keys)
+
+	//STEP2, 对key=value的键值对用&连接起来，略过空值
+	var signStrings string
+	for i, k := range sorted_keys {
+		//fmt.Printf("k=%v, v=%v\n", k, mReq[k])
+		value := fmt.Sprintf("%v", mReq[k])
+		if value != "" {
+			if i != (len(sorted_keys) - 1) {
+				signStrings = signStrings + k + "=" + value + "&"
+			} else {
+				signStrings = signStrings + k + "=" + value //最后一个不加此符号
+			}
+		}
+	}
+	//fmt.Println("=====键值对==============", signStrings)
+
+	//STEP3, 在键值对的最后加上key=API_KEY
+	if key != "" {
+		signStrings = signStrings + "&key=" + key
+	}
+	fmt.Println("=====wxpaySign 键值对加key==============", signStrings)
+
+	//STEP4, 进行MD5签名并且将所有字符转为大写.
+	md5Ctx := md5.New()
+	md5Ctx.Write([]byte(signStrings))
+	cipherStr := md5Ctx.Sum(nil)
+	upperSign := strings.ToUpper(hex.EncodeToString(cipherStr))
+
+	fmt.Println("=====进行MD5签名并且将所有字符转为大写 ==============", upperSign)
+	return upperSign
 }

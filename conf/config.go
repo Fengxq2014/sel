@@ -26,6 +26,7 @@ type config struct {
 	Mch_id            string
 	Mch_name          string
 	Key               string
+	CallBack          string
 }
 
 var Config *config

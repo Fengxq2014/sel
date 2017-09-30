@@ -73,7 +73,7 @@ func UpUserCouse(c *gin.Context) {
 	p := models.User_course{Course_id: queryStr.CID, User_id: queryStr.Uid, Course_time: time.Now()}
 	id, err := p.AddUsercourse()
 	res := models.Result{}
-	if id != 1 && err != nil {
+	if id != -1 && err != nil {
 		res.Res = 1
 		res.Msg = "更新用户课程表失败" + err.Error()
 		res.Data = nil
