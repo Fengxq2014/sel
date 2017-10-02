@@ -282,3 +282,15 @@ func UpPersonCount(evaluation_id int) (err error) {
 	_, err = stmt.Exec(evaluation_id)
 	return
 }
+
+// QryUserEvaluation 根据evaluation_id，user_id，child_id查询user_evaluation_id
+func (ue *User_evaluation)QryUserEvaluation() (result User_evaluation,err error){
+	_,err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=?",ue.Evaluation_id,ue.User_id,ue.Child_id).Get(&result)
+	return
+}
+
+// QryEvaluation 根据evaluation_id查询keyname
+func QryEvaluation(evaluation_id int)(result Evaluation,err error){
+	_,err = db.Engine.Where("evaluation_id=?",evaluation_id).Get(&result)
+	return
+}

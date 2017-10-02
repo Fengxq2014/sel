@@ -19,6 +19,7 @@ import (
 )
 
 func IndexApi(c *gin.Context) {
+	runPrint("selreport","52,fengtestdemo.pdf")
 	c.String(http.StatusOK, "ok")
 }
 

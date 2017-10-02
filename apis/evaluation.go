@@ -1,13 +1,19 @@
 package apis
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin/binding"
 
 	"github.com/Fengxq2014/sel/models"
+	"github.com/Fengxq2014/sel/tool"
 	"github.com/gin-gonic/gin"
 )
 
@@ -183,21 +189,52 @@ func QryReport(c *gin.Context) {
 	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1}
 	err := models.UpPersonCount(queryStr.EID)
 	if err != nil {
-		res.Res = 1
-		res.Msg = err.Error()
-		res.Data = ""
-		c.JSON(http.StatusOK, res)
+		c.Error(err)
+		return
 	}
 	_, err = ue.UpdateEvaluation()
 	if err != nil {
-		res.Res = 1
-		res.Msg = err.Error()
-		res.Data = ""
-		c.JSON(http.StatusOK, res)
+		c.Error(err)
+		return
 	}
+	userEvaluation, err := ue.QryUserEvaluation()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	evaluation, err := models.QryEvaluation(ue.Evaluation_id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	idstring := strconv.Itoa(userEvaluation.User_evaluation_id)
+	fileName := evaluation.Key_name + "_" + idstring + "_" + time.Now().Format("20060102150405") + ".pdf"
+	pdf := runPrint("selreport", idstring+","+fileName)
+	if pdf {
+		res.Res = 0
+		res.Msg = ""
+		res.Data = map[string]string{"pdf": "/front/report/" + fileName}
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	c.Error(errors.New("生成报告失败"))
+	return
+}
 
-	res.Res = 0
-	res.Msg = ""
-	res.Data = ""
-	c.JSON(http.StatusOK, res)
+func runPrint(cmd string, args ...string) bool {
+	os.Setenv("PATH", fmt.Sprintf("%s%c%s", "c:/sel/selreport", os.PathListSeparator, os.Getenv("PATH")))
+	ecmd := exec.Command(cmd, args...)
+	var errorout bytes.Buffer
+	var out bytes.Buffer
+	ecmd.Stdout = &out
+	ecmd.Stderr = &errorout
+	err := ecmd.Run()
+	if err != nil {
+		tool.Error(err)
+	}
+	if ecmd.ProcessState.Success() {
+		return true
+	}
+	tool.Error(fmt.Sprintf("processstate:%v,out:%v,error:%v", ecmd.ProcessState, out.String(), errorout.String()))
+	return false
 }
