@@ -77,13 +77,13 @@ func QryQuestion(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	if ue.Current_question_id == -1 && err == nil {
-		res.Res = 1
-		res.Msg = "当前题目已经做完！"
-		res.Data = nil
-		c.JSON(http.StatusOK, res)
-		return
-	}
+	// if ue.Current_question_id == -1 && err == nil {
+	// 	res.Res = 1
+	// 	res.Msg = "当前题目已经做完！"
+	// 	res.Data = nil
+	// 	c.JSON(http.StatusOK, res)
+	// 	return
+	// }
 	var question models.Question
 	if queryStr.Index > 0 {
 		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index, queryStr.UID)
@@ -114,11 +114,12 @@ func UpAnswer(c *gin.Context) {
 		Eid      int    `form:"evaluation_id" binding:"required"`       //测评ID
 		UID      int    `form:"user_id" binding:"required"`             //用户ID
 		Cid      int    `form:"child_id" binding:"required"`            //儿童ID
-		Cqid     int    `form:"current_question_id" binding:"required"` //当前测评题目，0为测评完成
+		Cqid     int    `form:"current_question_id" binding:"required"` //当前测评题目，-1为测评完成
 		Tr       string `form:"text_result"`                            //测评描述
 		Rr       string `form:"report_result"`                          //测评报告路径
 		Answer   string `form:"answer" binding:"required"`              //答案
 		MaxIndex int    `form:"maxIndex" binding:"required"`            //题目总数
+		Qid      int    `form:"question_id" binding:"required"`         //测评题目ID
 	}
 	//测评ID
 	var queryStr param
@@ -127,7 +128,7 @@ func UpAnswer(c *gin.Context) {
 		return
 	}
 
-	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.MaxIndex, queryStr.Answer)
+	err := models.UpdateUserAnswer(queryStr.Eid, queryStr.UID, queryStr.Cid, queryStr.Cqid, queryStr.MaxIndex, queryStr.Qid, queryStr.Answer)
 	res := models.Result{}
 	if err != nil {
 		res.Res = 1
@@ -207,17 +208,25 @@ func QryReport(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	idstring := strconv.Itoa(userEvaluation.User_evaluation_id)
-	fileName := evaluation.Key_name + "_" + idstring + "_" + time.Now().Format("20060102150405") + ".pdf"
-	pdf := runPrint("selreport", idstring+","+fileName)
-	if pdf {
-		res.Res = 0
-		res.Msg = ""
-		res.Data = map[string]string{"pdf": "/front/report/" + fileName}
-		c.JSON(http.StatusOK, res)
+	if len(userEvaluation.Report_result) <= 0 {
+		idstring := strconv.Itoa(userEvaluation.User_evaluation_id)
+		timetemp := time.Now().Format("20060102150405")
+		fileName := evaluation.Key_name + "_" + idstring + "_" + timetemp + ".pdf"
+		pdf := runPrint("selreport", idstring+","+fileName)
+		if pdf {
+			res.Res = 0
+			res.Msg = ""
+			res.Data = map[string]string{"pdf": "/front/report/" + fileName, "details": evaluation.Details, "name": evaluation.Name, "time": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+			c.JSON(http.StatusOK, res)
+			return
+		}
+		c.Error(errors.New("生成报告失败"))
 		return
 	}
-	c.Error(errors.New("生成报告失败"))
+	res.Res = 0
+	res.Msg = ""
+	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "time": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -237,4 +246,70 @@ func runPrint(cmd string, args ...string) bool {
 	}
 	tool.Error(fmt.Sprintf("processstate:%v,out:%v,error:%v", ecmd.ProcessState, out.String(), errorout.String()))
 	return false
+}
+
+// QryPayEvalution 测评是否已经支付
+func QryPayEvalution(c *gin.Context) {
+	type param struct {
+		EID int `form:"evaluation_id" binding:"required"` //测评ID
+		UID int `form:"user_id" binding:"required"`       //用户ID
+		CID int `form:"child_id" binding:"required"`      //儿童ID
+	}
+
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID}
+	ev, err := ue.GetEvaluation()
+
+	if err == nil && ev.User_evaluation_id != 0 {
+		res.Res = 0
+		res.Msg = "已支付！"
+		res.Data = 0
+		c.JSON(http.StatusOK, res)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = "未支付"
+	res.Data = 1
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+// UpPayEvalution 测评支付完成
+func UpPayEvalution(c *gin.Context) {
+	type param struct {
+		EID int `form:"evaluation_id" binding:"required"` //测评ID
+		UID int `form:"user_id" binding:"required"`       //用户ID
+		CID int `form:"child_id" binding:"required"`      //儿童ID
+	}
+
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID}
+	id, err := ue.AddEvaluation()
+
+	if id != 1 && err != nil {
+		res.Res = 1
+		res.Msg = "更新用户课程表失败" + err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = nil
+	c.JSON(http.StatusOK, res)
+	return
 }

@@ -7,17 +7,17 @@ import (
 )
 
 type Course struct {
-	Course_id    int    `json:"course_id" form:"course_id"`
-	Name         string `json:"name" form:"name"`
-	Category     string `json:"category" form:"category"`
-	User_access  int    `json:"user_access" form:"user_access"`
-	Valid_period int    `json:"valid_period" form:"valid_period"`
-	Abstract     string `json:"abstract" form:"abstract"`
-	Details      string `json:"details" form:"details"`
-	Price        int    `json:"price" form:"price"`
-	Person_count int    `json:"person_count" form:"person_count"`
-	Picture      string `json:"picture" form:"picture"`
-	Media        string `json:"media" form:"media"`
+	Course_id    int     `json:"course_id" form:"course_id"`
+	Name         string  `json:"name" form:"name"`
+	Category     string  `json:"category" form:"category"`
+	User_access  int     `json:"user_access" form:"user_access"`
+	Valid_period int     `json:"valid_period" form:"valid_period"`
+	Abstract     string  `json:"abstract" form:"abstract"`
+	Details      string  `json:"details" form:"details"`
+	Price        float64 `json:"price" form:"price"`
+	Person_count int     `json:"person_count" form:"person_count"`
+	Picture      string  `json:"picture" form:"picture"`
+	Media        string  `json:"media" form:"media"`
 }
 
 // GetCourse 获取课程列表

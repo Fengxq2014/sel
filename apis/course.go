@@ -173,3 +173,63 @@ func QryMyVideo(c *gin.Context) {
 
 	c.JSON(http.StatusOK, res)
 }
+
+// QryPayCourse 课程是否已经支付
+func QryPayCourse(c *gin.Context) {
+	type param struct {
+		CID int `form:"course_id" binding:"required"` //关联课程ID
+		Uid int `form:"user_id" binding:"required"`   //关联用户ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	p := models.User_course{Course_id: queryStr.CID, User_id: queryStr.Uid}
+	uc, err := p.QryVideo()
+
+	if uc.Course_id != 0 && uc.User_id != 0 && err == nil {
+		res.Res = 0
+		res.Msg = "已支付！"
+		res.Data = 0
+		c.JSON(http.StatusOK, res)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = "未支付！"
+	res.Data = 1
+	c.JSON(http.StatusOK, res)
+}
+
+// UpPayCourse 视频支付完成
+func UpPayCourse(c *gin.Context) {
+	type param struct {
+		CID int `form:"course_id" binding:"required"` //关联课程ID
+		Uid int `form:"user_id" binding:"required"`   //关联用户ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	p := models.User_course{Course_id: queryStr.CID, User_id: queryStr.Uid}
+	id, err := p.AddUsercourse()
+
+	if id != 1 && err != nil {
+		res.Res = 1
+		res.Msg = "更新用户课程表失败" + err.Error()
+		res.Data = nil
+		c.JSON(http.StatusOK, res)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = nil
+	c.JSON(http.StatusOK, res)
+}

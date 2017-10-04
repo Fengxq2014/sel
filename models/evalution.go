@@ -15,7 +15,7 @@ type Evaluation struct {
 	User_access         int       `json:"user_access" form:"user_access"`
 	Abstract            string    `json:"abstract" form:"abstract"`
 	Details             string    `json:"details" form:"details"`
-	Price               int       `json:"price" form:"price"`
+	Price               float64   `json:"price" form:"price"`
 	Page_number         int       `json:"page_number" form:"page_number"`
 	Person_count        int       `json:"person_count" form:"person_count"`
 	Picture             string    `json:"picture" form:"picture"`
@@ -24,6 +24,7 @@ type Evaluation struct {
 	MaxIndex            int64     `json:"maxIndex" form:"maxIndex" xorm:"-"`
 	Current_question_id string    `json:"current_question_id" form:"current_question_id" xorm:"-"`
 	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time" xorm:"-"`
+	Child_id            int64     `json:"child_id" form:"child_id" xorm:"-"`
 }
 
 // GetEvaluation 获取测评列表
@@ -53,7 +54,7 @@ func (e *Evaluation) GetEvaluation() (evaluations []Evaluation, err error) {
 }
 
 type Question struct {
-	Question_id    int    `json:"-" form:"question_id"`
+	Question_id    int    `json:"question_id" form:"question_id"`
 	Evaluation_id  int    `json:"evaluation_id" form:"evaluation_id"`
 	Question_index int    `json:"question_index" form:"question_index"`
 	Content        string `json:"content" form:"content"`
@@ -101,7 +102,7 @@ func GetQuestionByIndex(evaluation_id, index, userID int) (question Question, er
 	}
 	var Answer sql.NullString
 
-	err = db.SqlDB.QueryRow("select a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_index and b.user_id=?  and b.user_evaluation_id=a.evaluation_id where a.evaluation_id =? and a.question_index=? ", userID, evaluation_id, index).Scan(&question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	err = db.SqlDB.QueryRow("select a.question_id,a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_id and b.user_id=? where a.evaluation_id =? and a.question_index=? ", userID, evaluation_id, index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
 	if Answer.Valid {
 		question.Answer = Answer.String
 	}
@@ -115,8 +116,8 @@ type User_evaluation struct {
 	Child_id            int       `json:"child_id" form:"child_id"`
 	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time"`
 	Current_question_id int       `json:"current_question_id" form:"current_question_id"`
-	Text_result         string    `json:"text_result" form:"text_result"`
-	Report_result       string    `json:"report_result" form:"report_result"`
+	Text_result         string    `json:"text_result" form:"text_result" xorm:"null"`
+	Report_result       string    `json:"report_result" form:"report_result" xorm:"null"`
 }
 
 type User_question struct {
@@ -128,16 +129,17 @@ type User_question struct {
 }
 
 // UpdateUserAnswer 上传答案
-func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, MaxIndex int, Answer string) (err error) {
+func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, MaxIndex, Question_id int, Answer string) (err error) {
 	ue := User_evaluation{Evaluation_id: Evaluation_id, User_id: User_id, Child_id: Child_id, Current_question_id: Current_question_id}
-	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Current_question_id, Answer: Answer, User_id: User_id}
+	uq := User_question{User_evaluation_id: Evaluation_id, Question_id: Question_id, Answer: Answer, User_id: User_id}
 	//user_evaluation 有记录
-	if selue, err := ue.GetEvaluation(); err == nil && selue.Current_question_id != 0 {
+	if selue, err := ue.GetEvaluation(); err == nil && selue.Current_question_id != 0 && selue.Current_question_id != -1 {
 		ue.Current_question_id = maxInt(selue.Current_question_id, ue.Current_question_id) //防止修改答案时改变当前题目序号
 		// if ue.Current_question_id == MaxIndex {
 		// 	ue.Current_question_id = -1
 		// 	UpPersonCount(Evaluation_id)
 		// }
+		ue.User_evaluation_id = selue.User_evaluation_id
 		_, err := ue.UpdateEvaluation()
 		if err != nil {
 			return err
@@ -173,7 +175,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 
 // GetEvaluation 查询用户测评表
 func (ue *User_evaluation) GetEvaluation() (uevaluation User_evaluation, err error) {
-	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&uevaluation)
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? ORDER BY evaluation_time DESC", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&uevaluation)
 	// err = db.SqlDB.QueryRow("SELECT user_evaluation_id,current_question_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
 	// if err != nil {
 	// 	return evaluation, err
@@ -182,7 +184,7 @@ func (ue *User_evaluation) GetEvaluation() (uevaluation User_evaluation, err err
 }
 
 func (ue *User_evaluation) UpdateEvaluation() (id int64, err error) {
-	id, err = db.Engine.Cols("current_question_id").Update(ue, &User_evaluation{Evaluation_id: ue.Evaluation_id, User_id: ue.User_id, Child_id: ue.Child_id})
+	id, err = db.Engine.Cols("current_question_id").Update(ue, &User_evaluation{User_evaluation_id: ue.User_evaluation_id})
 	// stmt, err := db.SqlDB.Prepare("update user_evaluation set current_question_id=?,text_result=?,report_result=?")
 	// if err != nil {
 	// 	return 0, err
@@ -250,14 +252,14 @@ func maxInt(x, y int) int {
 
 // GetMyEvaluation 获取本人测评
 func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT a.*,b.current_question_id,b.evaluation_time FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=?", user_id)
+	rows, err := db.SqlDB.Query("SELECT a.*,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=?", user_id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var evaluation Evaluation
-		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Key_name, &evaluation.Current_question_id, &evaluation.Evaluation_time)
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Key_name, &evaluation.Current_question_id, &evaluation.Evaluation_time, &evaluation.Child_id)
 		if err != nil {
 			return nil, err
 		}
@@ -284,13 +286,13 @@ func UpPersonCount(evaluation_id int) (err error) {
 }
 
 // QryUserEvaluation 根据evaluation_id，user_id，child_id查询user_evaluation_id
-func (ue *User_evaluation)QryUserEvaluation() (result User_evaluation,err error){
-	_,err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=?",ue.Evaluation_id,ue.User_id,ue.Child_id).Get(&result)
+func (ue *User_evaluation) QryUserEvaluation() (result User_evaluation, err error) {
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
 	return
 }
 
 // QryEvaluation 根据evaluation_id查询keyname
-func QryEvaluation(evaluation_id int)(result Evaluation,err error){
-	_,err = db.Engine.Where("evaluation_id=?",evaluation_id).Get(&result)
+func QryEvaluation(evaluation_id int) (result Evaluation, err error) {
+	_, err = db.Engine.Where("evaluation_id=?", evaluation_id).Get(&result)
 	return
 }

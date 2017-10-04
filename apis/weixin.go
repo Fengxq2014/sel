@@ -193,7 +193,7 @@ func Page2Handler(c *gin.Context) {
 	}
 	noncestr := string(rand.NewHex())
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	sign := jssdk.WXConfigSign(accesstoken, noncestr, timestamp, conf.Config.Host+"/front/dist/")
+	sign := jssdk.WXConfigSign(accesstoken, noncestr, timestamp, conf.Config.Host+"/front/dist/?")
 	ss := []string{conf.Config.WXAppID, timestamp, noncestr, sign}
 	wxconfigCookie := http.Cookie{
 		Name:  "wxconfig",
@@ -206,11 +206,11 @@ func Page2Handler(c *gin.Context) {
 	AuthCodeURL := ""
 	switch menuType := c.Query("menuType"); menuType {
 	case "1":
-		AuthCodeURL = "/front/dist/#/appbase/assessment"
+		AuthCodeURL = "/front/dist/?#/appbase/assessment"
 	case "2":
-		AuthCodeURL = "/front/dist/#/appbase/course"
+		AuthCodeURL = "/front/dist/?#/appbase/course"
 	case "3":
-		AuthCodeURL = "/front/dist/#/appbase/mine"
+		AuthCodeURL = "/front/dist/?#/appbase/mine"
 	default:
 		AuthCodeURL = "/front/appbase/mine"
 	}

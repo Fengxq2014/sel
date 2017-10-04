@@ -73,7 +73,8 @@ func WxPayOrder(c *gin.Context) {
 		CourseId string  `form:"course_id" binding:"required"` //课程ID
 		Price    float64 `form:"price" binding:"required"`     //价格
 		OpenId   string  `form:"openid" binding:"required"`    //用户openid
-		Uid      int     `form:"user_id" binding:"required"`   //关联用户ID
+		Uid      int     `form:"user_id" binding:"required"`   //用户ID
+		Cid      int     `form:"child_id"`                     //儿童ID
 	}
 
 	var queryStr param
@@ -89,6 +90,7 @@ func WxPayOrder(c *gin.Context) {
 	order.TotalFee = queryStr.Price
 	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
 	order.SpbillCreateIP = ip
+	// order.SpbillCreateIP = "192.168.10.12"
 	if err != nil {
 		c.Error(errors.New("解析客户端地址失败"))
 		return
@@ -99,17 +101,23 @@ func WxPayOrder(c *gin.Context) {
 
 	order.DeviceInfo = ""
 	order.NonceStr = time.Now().Format("20060102150405") + randSeq(10)
+	// log.Printf("NonceStr:" + order.NonceStr)
 	order.SignType = "MD5"
 	order.Detail = ""
-	order.Attach = queryStr.CourseId + "|" + strconv.Itoa(queryStr.Uid)
+	println("Cid:" + strconv.Itoa(queryStr.Cid))
+	if queryStr.Cid != 0 {
+		order.Attach = queryStr.CourseId + "|" + strconv.Itoa(queryStr.Uid) + "|" + strconv.Itoa(queryStr.Cid)
+	} else {
+		order.Attach = queryStr.CourseId + "|" + strconv.Itoa(queryStr.Uid)
+	}
 	order.FeeType = "CNY"
 
-	local, err := time.LoadLocation("PRC") //服务器设置的时区
-	if err != nil {
-		fmt.Println(err)
-	}
-	order.TimeStart = time.Now().In(local).Format("20060102150405")
-	order.TimeExpire = time.Now().In(local).Add(time.Minute * 5).Format("20060102150405")
+	// local, err := time.LoadLocation("PRC") //服务器设置的时区
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	order.TimeStart = time.Now().Format("20060102150405")
+	order.TimeExpire = time.Now().Add(time.Minute * 5).Format("20060102150405")
 	order.GoodsTag = ""
 	order.ProductId = ""
 	order.LimitPay = ""
@@ -198,12 +206,13 @@ func WxPayOrder(c *gin.Context) {
 	}
 
 	xmlResp.TimeStamp = strconv.FormatInt(time.Now().Unix(), 10)
+	xmlResp.Nonce_str = order.NonceStr
 
 	var mm map[string]interface{}
 	mm = make(map[string]interface{}, 0)
 	mm["appId"] = conf.Config.WXAppID
 	mm["timeStamp"] = xmlResp.TimeStamp
-	mm["nonceStr"] = time.Now().Format("20060102150405") + randSeq(10)
+	mm["nonceStr"] = order.NonceStr
 	mm["package"] = "prepay_id=" + xmlResp.Prepay_id
 	mm["signType"] = "MD5"
 

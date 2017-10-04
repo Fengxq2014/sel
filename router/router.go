@@ -67,7 +67,16 @@ func InitRouter() *gin.Engine {
 	//生成支付订单
 	router.GET("/wxPayOrder", apis.WxPayOrder)
 	//微信支付回调
-	//router.GET("/wxPayCallBack", apis.WxPayCallBack)
+	router.GET("/wxPayCallBack", apis.WxPayCallBack)
+	//测评是否已经支付
+	router.GET("/qrypayevalution", apis.QryPayEvalution)
+	//课程是否已经支付
+	router.GET("/qrypaycourse", apis.QryPayCourse)
+	//测评支付完成
+	router.GET("/uppayevalution", apis.UpPayEvalution)
+	//视频支付完成
+	router.GET("/uppaycourse", apis.UpPayCourse)
+
 	return router
 }
 
