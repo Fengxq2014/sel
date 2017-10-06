@@ -119,6 +119,7 @@ type User_evaluation struct {
 	Current_question_id int       `json:"current_question_id" form:"current_question_id"`
 	Text_result         string    `json:"text_result" form:"text_result" xorm:"null"`
 	Report_result       string    `json:"report_result" form:"report_result" xorm:"null"`
+	TypeId              string    `json:"TypeId" form:"TypeId" xorm:"-"`
 }
 
 type User_question struct {
@@ -288,7 +289,11 @@ func UpPersonCount(evaluation_id int) (err error) {
 
 // QryUserEvaluation 根据evaluation_id，user_id，child_id查询user_evaluation_id
 func (ue *User_evaluation) QryUserEvaluation() (result User_evaluation, err error) {
-	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id!=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
+	if ue.TypeId == "0" {
+		_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id!=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
+		return
+	}
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
 	return
 }
 

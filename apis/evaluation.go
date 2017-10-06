@@ -186,7 +186,7 @@ func QryReport(c *gin.Context) {
 		return
 	}
 	res := models.Result{}
-	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1}
+	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1, TypeId: queryStr.TypeId}
 
 	userEvaluation, err := ue.QryUserEvaluation()
 	if err != nil {
