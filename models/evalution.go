@@ -88,7 +88,7 @@ type Question struct {
 // }
 
 // GetQuestionByIndex 根据index获取题目
-func GetQuestionByIndex(evaluation_id, index, userID int) (question Question, err error) {
+func GetQuestionByIndex(evaluation_id, index, userID, User_evaluation_id int) (question Question, err error) {
 	total, err := db.Engine.Where("evaluation_id=?", evaluation_id).Count(&question)
 
 	// var maxIndex int
@@ -102,10 +102,11 @@ func GetQuestionByIndex(evaluation_id, index, userID int) (question Question, er
 	}
 	var Answer sql.NullString
 
-	err = db.SqlDB.QueryRow("select a.question_id,a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_id and b.user_id=? where a.evaluation_id =? and a.question_index=? ", userID, evaluation_id, index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
+	err = db.SqlDB.QueryRow("select a.question_id,a.evaluation_id,a.question_index,a.content,b.answer from question a left join user_question b on b.question_id=a.question_id and b.user_id=? and b.user_evaluation_id=? where a.evaluation_id =? and a.question_index=? ", userID, User_evaluation_id, evaluation_id, index).Scan(&question.Question_id, &question.Evaluation_id, &question.Question_index, &question.Content, &Answer)
 	if Answer.Valid {
 		question.Answer = Answer.String
 	}
+
 	return question, err
 }
 
@@ -175,7 +176,7 @@ func UpdateUserAnswer(Evaluation_id, User_id, Child_id, Current_question_id, Max
 
 // GetEvaluation 查询用户测评表
 func (ue *User_evaluation) GetEvaluation() (uevaluation User_evaluation, err error) {
-	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? ORDER BY evaluation_time DESC", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&uevaluation)
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id!=-1 ORDER BY evaluation_time DESC", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&uevaluation)
 	// err = db.SqlDB.QueryRow("SELECT user_evaluation_id,current_question_id FROM user_evaluation where evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Scan(&evaluation.User_evaluation_id, &evaluation.Current_question_id)
 	// if err != nil {
 	// 	return evaluation, err
@@ -287,7 +288,7 @@ func UpPersonCount(evaluation_id int) (err error) {
 
 // QryUserEvaluation 根据evaluation_id，user_id，child_id查询user_evaluation_id
 func (ue *User_evaluation) QryUserEvaluation() (result User_evaluation, err error) {
-	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id!=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
 	return
 }
 

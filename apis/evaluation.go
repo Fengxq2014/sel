@@ -86,12 +86,12 @@ func QryQuestion(c *gin.Context) {
 	// }
 	var question models.Question
 	if queryStr.Index > 0 {
-		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index, queryStr.UID)
+		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index, queryStr.UID, ue.User_evaluation_id)
 	} else {
 		if ue.Current_question_id > 0 {
-			question, err = models.GetQuestionByIndex(queryStr.Eid, ue.Current_question_id+1, queryStr.UID)
+			question, err = models.GetQuestionByIndex(queryStr.Eid, ue.Current_question_id+1, queryStr.UID, ue.User_evaluation_id)
 		} else {
-			question, err = models.GetQuestionByIndex(queryStr.Eid, 1, queryStr.UID)
+			question, err = models.GetQuestionByIndex(queryStr.Eid, 1, queryStr.UID, ue.User_evaluation_id)
 		}
 	}
 
@@ -175,29 +175,19 @@ func QryMyEvaluation(c *gin.Context) {
 // QryReport 查看报告
 func QryReport(c *gin.Context) {
 	type param struct {
-		EID int `form:"evaluation_id" binding:"required"` //测评ID
-		UID int `form:"user_id" binding:"required"`       //用户ID
-		CID int `form:"child_id" binding:"required"`      //儿童ID
+		EID    int    `form:"evaluation_id" binding:"required"` //测评ID
+		UID    int    `form:"user_id" binding:"required"`       //用户ID
+		CID    int    `form:"child_id" binding:"required"`      //儿童ID
+		TypeId string `form:"typeid"`                           //查看报告1；生成报告0
 	}
-
 	var queryStr param
 	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
 		c.Error(errors.New("参数为空"))
 		return
 	}
-
 	res := models.Result{}
 	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1}
-	err := models.UpPersonCount(queryStr.EID)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-	_, err = ue.UpdateEvaluation()
-	if err != nil {
-		c.Error(err)
-		return
-	}
+
 	userEvaluation, err := ue.QryUserEvaluation()
 	if err != nil {
 		c.Error(err)
@@ -208,15 +198,25 @@ func QryReport(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	if len(userEvaluation.Report_result) <= 0 {
+	if len(userEvaluation.Report_result) <= 0 && queryStr.TypeId == "0" {
 		idstring := strconv.Itoa(userEvaluation.User_evaluation_id)
 		timetemp := time.Now().Format("20060102150405")
 		fileName := evaluation.Key_name + "_" + idstring + "_" + timetemp + ".pdf"
 		pdf := runPrint("selreport", idstring+","+fileName)
 		if pdf {
+			err := models.UpPersonCount(queryStr.EID)
+			if err != nil {
+				c.Error(err)
+				return
+			}
+			_, err = ue.UpdateEvaluation()
+			if err != nil {
+				c.Error(err)
+				return
+			}
 			res.Res = 0
 			res.Msg = ""
-			res.Data = map[string]string{"pdf": "/front/report/" + fileName, "details": evaluation.Details, "name": evaluation.Name, "time": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+			res.Data = map[string]string{"pdf": "/front/report/" + fileName, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
 			c.JSON(http.StatusOK, res)
 			return
 		}
@@ -225,7 +225,7 @@ func QryReport(c *gin.Context) {
 	}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "time": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
 	c.JSON(http.StatusOK, res)
 	return
 }
