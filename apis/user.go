@@ -19,7 +19,7 @@ import (
 )
 
 func IndexApi(c *gin.Context) {
-	runPrint("selreport","52,fengtestdemo.pdf")
+	runPrint("selreport", "52,fengtestdemo.pdf")
 	c.String(http.StatusOK, "ok")
 }
 
@@ -92,9 +92,9 @@ func Login(c *gin.Context) {
 // AddUcAPI 用户儿童关联
 func AddUcAPI(c *gin.Context) {
 	type param struct {
-		UID           int    `form:"user_id" binding:"exists"`
-		Re            int    `form:"relation" binding:"exists"`
-		Ggid          int    `form:"gender" binding:"exists"`
+		UID           int    `form:"user_id" binding:"required"`
+		Re            int    `form:"relation" binding:"required"`
+		Ggid          int    `form:"gender" binding:"required"`
 		Name          string `form:"name" binding:"required"`
 		T             string `form:"birth_date" binding:"required"`
 		CCID          int64  `form:"child_id"`

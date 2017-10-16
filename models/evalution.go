@@ -25,6 +25,7 @@ type Evaluation struct {
 	Current_question_id string    `json:"current_question_id" form:"current_question_id" xorm:"-"`
 	Evaluation_time     time.Time `json:"evaluation_time" form:"evaluation_time" xorm:"-"`
 	Child_id            int64     `json:"child_id" form:"child_id" xorm:"-"`
+	User_evaluation_id  int64     `json:"user_evaluation_id" form:"user_evaluation_id" xorm:"-"`
 }
 
 // GetEvaluation 获取测评列表
@@ -254,14 +255,14 @@ func maxInt(x, y int) int {
 
 // GetMyEvaluation 获取本人测评
 func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT a.*,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=?", user_id)
+	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=?", user_id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var evaluation Evaluation
-		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Key_name, &evaluation.Current_question_id, &evaluation.Evaluation_time, &evaluation.Child_id)
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Key_name, &evaluation.User_evaluation_id, &evaluation.Current_question_id, &evaluation.Evaluation_time, &evaluation.Child_id)
 		if err != nil {
 			return nil, err
 		}
@@ -294,6 +295,12 @@ func (ue *User_evaluation) QryUserEvaluation() (result User_evaluation, err erro
 		return
 	}
 	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
+	return
+}
+
+// QryUserEvaluation 根据evaluation_id，user_id，child_id查询user_evaluation_id
+func (ue *User_evaluation) QryEvaluation() (result User_evaluation, err error) {
+	_, err = db.Engine.Where("user_evaluation_id=?", ue.User_evaluation_id).Get(&result)
 	return
 }
 

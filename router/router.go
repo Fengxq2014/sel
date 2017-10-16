@@ -62,8 +62,10 @@ func InitRouter() *gin.Engine {
 	router.GET("/QryMyCourse", apis.QryMyCourse)
 	//插入视频播放记录
 	router.GET("/VideoPlaybackRecord", apis.QryMyVideo)
-	//查看报告
+	//生成报告
 	router.GET("/QryReport", apis.QryReport)
+	//查看报告
+	router.GET("/QryReports", apis.QryReports)
 	//生成支付订单
 	router.GET("/wxPayOrder", apis.WxPayOrder)
 	//微信支付回调

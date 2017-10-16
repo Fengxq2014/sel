@@ -172,7 +172,7 @@ func QryMyEvaluation(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Result{Data: evaluation})
 }
 
-// QryReport 查看报告
+// QryReport 生成报告
 func QryReport(c *gin.Context) {
 	type param struct {
 		EID    int    `form:"evaluation_id" binding:"required"` //测评ID
@@ -310,6 +310,37 @@ func UpPayEvalution(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = nil
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+// QryReports 查看报告
+func QryReports(c *gin.Context) {
+	type param struct {
+		UEID int `form:"user_evaluation_id" binding:"required"` //用户测评ID
+		EID  int `form:"evaluation_id" binding:"required"`      //测评ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_evaluation_id: queryStr.UEID}
+
+	userEvaluation, err := ue.QryEvaluation()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	evaluation, err := models.QryEvaluation(ue.Evaluation_id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
 	c.JSON(http.StatusOK, res)
 	return
 }
