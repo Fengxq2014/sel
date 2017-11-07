@@ -233,26 +233,3 @@ func UpPayCourse(c *gin.Context) {
 	res.Data = nil
 	c.JSON(http.StatusOK, res)
 }
-
-// QrySingleCourse 获取单个视频
-func QrySingleCourse(c *gin.Context) {
-	cid := c.Query("course_id")
-	if cid == "" {
-		c.Error(errors.New("参数为空"))
-		return
-	}
-	res := models.Result{}
-	course, err := models.QrySingleCourse(cid)
-
-	if err != nil {
-		res.Res = 1
-		res.Msg = "获取视频失败" + err.Error()
-		res.Data = nil
-		c.JSON(http.StatusOK, res)
-		return
-	}
-	res.Res = 0
-	res.Msg = ""
-	res.Data = course
-	c.JSON(http.StatusOK, res)
-}
