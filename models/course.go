@@ -84,3 +84,9 @@ func (uc *User_course) QryVideo() (user_course User_course, err error) {
 	_, err = db.Engine.Where("course_id=? and user_id=?", uc.Course_id, uc.User_id).Get(&user_course)
 	return user_course, err
 }
+
+// QrySingleCourse 获取单个视频
+func QrySingleCourse(cid string) (course Course, err error) {
+	_, err = db.Engine.Where("course_id=?", cid).Get(&course)
+	return course, err
+}
