@@ -78,6 +78,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/uppayevalution", apis.UpPayEvalution)
 	//视频支付完成
 	router.GET("/uppaycourse", apis.UpPayCourse)
+	//根据id获取课程信息
+	router.GET("/GetCourseByID", apis.GetCourseByID)
 
 	return router
 }

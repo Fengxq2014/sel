@@ -233,3 +233,26 @@ func UpPayCourse(c *gin.Context) {
 	res.Data = nil
 	c.JSON(http.StatusOK, res)
 }
+
+// GetCourseByID 根据id获取课程信息
+func GetCourseByID(c *gin.Context) {
+	type param struct {
+		CID int `form:"id" binding:"required"` //课程ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	qry := models.Course{Course_id: queryStr.CID}
+	course, err := qry.GetCourseByID()
+	if err != nil {
+		c.Error(errors.New("没有该课程"))
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = course
+	c.JSON(http.StatusOK, res)
+}
