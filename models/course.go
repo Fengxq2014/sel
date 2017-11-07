@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	db "github.com/Fengxq2014/sel/database"
@@ -36,6 +37,15 @@ func (e *Course) GetCourse() (courses []Course, err error) {
 		courses = append(courses, course)
 	}
 	return courses, err
+}
+
+// GetCourseByID 根据id获取课程信息
+func (e *Course) GetCourseByID() (courses Course, err error) {
+	has, err := db.Engine.Where("course_id = ?", e.Course_id).Get(&courses)
+	if !has {
+		return courses, errors.New("没有该课程")
+	}
+	return
 }
 
 type User_course struct {
