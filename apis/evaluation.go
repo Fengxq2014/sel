@@ -77,13 +77,6 @@ func QryQuestion(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	// if ue.Current_question_id == -1 && err == nil {
-	// 	res.Res = 1
-	// 	res.Msg = "当前题目已经做完！"
-	// 	res.Data = nil
-	// 	c.JSON(http.StatusOK, res)
-	// 	return
-	// }
 	var question models.Question
 	if queryStr.Index > 0 {
 		question, err = models.GetQuestionByIndex(queryStr.Eid, queryStr.Index, queryStr.UID, ue.User_evaluation_id)
@@ -179,6 +172,7 @@ func QryReport(c *gin.Context) {
 		UID    int    `form:"user_id" binding:"required"`       //用户ID
 		CID    int    `form:"child_id" binding:"required"`      //儿童ID
 		TypeId string `form:"typeid"`                           //查看报告1；生成报告0
+		OpenId string `form:"openid" binding:"required"`        //用户openid
 	}
 	var queryStr param
 	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
@@ -214,18 +208,30 @@ func QryReport(c *gin.Context) {
 				c.Error(err)
 				return
 			}
+
+			err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198/front/report/"+fileName)
+			if err != nil {
+				c.Error(err)
+				return
+			}
 			res.Res = 0
 			res.Msg = ""
-			res.Data = map[string]string{"pdf": "/front/report/" + fileName, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+			//res.Data = map[string]string{"pdf": "/front/report/" + fileName, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
 			c.JSON(http.StatusOK, res)
 			return
 		}
 		c.Error(errors.New("生成报告失败"))
 		return
 	}
+
+	err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198"+userEvaluation.Report_result)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+	//res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -341,6 +347,31 @@ func QryReports(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+// QrySingleEvaluation 获取单个测评
+func QrySingleEvaluation(c *gin.Context) {
+	type param struct {
+		EID int `form:"evaluation_id" binding:"required"` //测评ID
+	}
+	//测评ID
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	evaluation, err := models.QryEvaluation(queryStr.EID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = evaluation
 	c.JSON(http.StatusOK, res)
 	return
 }

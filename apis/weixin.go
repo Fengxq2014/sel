@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -28,6 +29,7 @@ import (
 	"github.com/chanxuehong/wechat.v2/mp/menu"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/request"
 	"github.com/chanxuehong/wechat.v2/mp/message/callback/response"
+	"github.com/chanxuehong/wechat.v2/mp/message/template"
 	mpoauth2 "github.com/chanxuehong/wechat.v2/mp/oauth2"
 	"github.com/chanxuehong/wechat.v2/oauth2"
 	"github.com/gin-gonic/gin"
@@ -254,4 +256,43 @@ func checkFileIsExist(filename string) bool {
 		exist = false
 	}
 	return exist
+}
+
+// TemplateMessage 发送模板消息
+func TemplateMessage(openid, url string) (err error) {
+	type TemplateMessage struct {
+		ToUser     string          `json:"touser"`        // 必须, 接受者OpenID
+		TemplateId string          `json:"template_id"`   // 必须, 模版ID
+		URL        string          `json:"url,omitempty"` // 可选, 用户点击后跳转的URL, 该URL必须处于开发者在公众平台网站中设置的域中
+		Data       json.RawMessage `json:"data"`          // 必须, 模板数据, JSON 格式的 []byte, 满足特定的模板需求
+	}
+	var jsonBlob = []byte(`{
+		"first": {
+			"value":"恭喜你购买成功！",
+			"color":"#173177"
+		},
+		"keynote1":{
+			"value":"巧克力",
+			"color":"#173177"
+		},
+		"keynote2": {
+			"value":"39.8元",
+			"color":"#173177"
+		},
+		"keynote3": {
+			"value":"2014年9月22日",
+			"color":"#173177"
+		},
+		"remark":{
+			"value":"欢迎再次购买！",
+			"color":"#173177"
+		}}`)
+
+	msg := TemplateMessage{ToUser: openid, TemplateId: conf.Config.Template_id, URL: url, Data: jsonBlob}
+	msgid, err := template.Send(wechatClient, msg)
+	id := strconv.FormatInt(msgid, 10)
+	if err != nil && id != "" {
+		return err
+	}
+	return err
 }

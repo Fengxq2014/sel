@@ -94,3 +94,18 @@ func (uc *User_course) QryVideo() (user_course User_course, err error) {
 	_, err = db.Engine.Where("course_id=? and user_id=?", uc.Course_id, uc.User_id).Get(&user_course)
 	return user_course, err
 }
+
+type Resource struct {
+	Resource_id int `json:"resource_id" form:"resource_id"`
+	Name        int `json:"name" form:"name"`
+	Type        int `json:"resource_type" form:"resource_type"`
+	Url         int `json:"url" form:"url"`
+}
+
+type Cresource struct {
+	Cresource_id int `json:"cresource_id" form:"cresource_id"`
+	Course_id    int `json:"course_id" form:"course_id"`
+	Resource_id  int `json:"resource_id" form:"resource_id"`
+	Index        int `json:"index" form:"index"`
+	Free         int `json:"free" form:"free"`
+}

@@ -196,8 +196,6 @@ func QryUcAPI(c *gin.Context) {
 		a := value.Birth_date.Format("2006-01-02")
 		value.Birth_date, err = time.Parse("2006-01-02", a)
 	}
-	// a := child.Birth_date.Format("2006-01-02")
-	// child.Birth_date, err = time.Parse("2006-01-02", a)
 	res.Res = 0
 	res.Msg = ""
 	res.Data = child

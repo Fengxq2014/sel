@@ -237,7 +237,7 @@ func UpPayCourse(c *gin.Context) {
 // GetCourseByID 根据id获取课程信息
 func GetCourseByID(c *gin.Context) {
 	type param struct {
-		CID int `form:"id" binding:"required"` //课程ID
+		CID int `form:"course_id" binding:"required"` //课程ID
 	}
 	var queryStr param
 	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
