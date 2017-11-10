@@ -82,6 +82,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/GetCourseByID", apis.GetCourseByID)
 	//根据id获取测评信息
 	router.GET("/GetEvalutionByID", apis.QrySingleEvaluation)
+	//获取课程资源
+	router.GET("/GetResource", apis.GetResource)
 
 	return router
 }

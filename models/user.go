@@ -18,7 +18,7 @@ type User struct {
 	Gender        string `json:"gender" form:"gender"`
 	Birth_date    string `json:"birth_date" form:"birth_date"`
 	Residence     string `json:"residence" form:"residence"`
-	Child_id      string `json:"child_id" form:"child_id" xorm:"-"`
+	Child_id      string `json:"child_id" form:"child_id" xorm:"<-"`
 }
 
 // GetUserByOpenid 通过微信身份标识获取客户信息

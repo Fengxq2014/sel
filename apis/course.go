@@ -256,3 +256,27 @@ func GetCourseByID(c *gin.Context) {
 	res.Data = course
 	c.JSON(http.StatusOK, res)
 }
+
+// GetResource 获取课程资源
+func GetResource(c *gin.Context) {
+	type param struct {
+		CID int `form:"course_id" binding:"required"` //课程ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	resource, err := models.QryResource(queryStr.CID)
+
+	if err != nil {
+		c.Error(errors.New("获取课程资源失败"))
+		return
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = resource
+	c.JSON(http.StatusOK, res)
+}

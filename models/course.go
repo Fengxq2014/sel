@@ -109,3 +109,9 @@ type Cresource struct {
 	Index        int `json:"index" form:"index"`
 	Free         int `json:"free" form:"free"`
 }
+
+// QryResource 获取课程资源
+func QryResource(course_id int) (resource Resource, err error) {
+	_, err = db.Engine.Join("left", "Cresource", "Cresource.resource_id=resource.resource_id").Where("user.openid = ?", course_id).Get(&resource)
+	return resource, err
+}
