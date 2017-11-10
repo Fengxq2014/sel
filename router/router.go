@@ -84,6 +84,10 @@ func InitRouter() *gin.Engine {
 	router.GET("/GetEvalutionByID", apis.QrySingleEvaluation)
 	//获取课程资源
 	router.GET("/GetResource", apis.GetResource)
+	//获取省、直辖市信息
+	router.GET("/GetProvinces", apis.GetProvinces)
+	//获取地级市信息
+	router.GET("/GetCities", apis.GetCities)
 
 	return router
 }

@@ -346,7 +346,7 @@ func QryReports(c *gin.Context) {
 	}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Data_result}
 	c.JSON(http.StatusOK, res)
 	return
 }
