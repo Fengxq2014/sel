@@ -187,7 +187,6 @@ func QryUcAPI(c *gin.Context) {
 	child, err := p.Getchild()
 	res := models.Result{}
 	if err != nil {
-		res.Res = 0
 		res.Msg = "没有该儿童信息！"
 		c.JSON(http.StatusOK, res)
 		return
@@ -199,5 +198,60 @@ func QryUcAPI(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = child
+	c.JSON(http.StatusOK, res)
+}
+
+// UpdateUser 更新个人中心信息
+func UpdateUser(c *gin.Context) {
+	type param struct {
+		Name       string `form:"name" binding:"required"`
+		Gender     string `form:"gender" binding:"required"`
+		Residence  string `form:"residence" binding:"required"`
+		Birth_date string `form:"birth_date" binding:"required"`
+		User_id    int    `form:"user_id" binding:"required"`
+	}
+
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	p := models.User{Name: queryStr.Name, Gender: queryStr.Gender, Residence: queryStr.Residence, Birth_date: queryStr.Birth_date, User_id: queryStr.User_id}
+
+	id, err := p.UpdateUser()
+	res := models.Result{}
+	if id > 0 && err != nil {
+		res.Msg = "更新个人中心信息失败！"
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	c.JSON(http.StatusOK, res)
+}
+
+// QryUser 获取个人中心信息
+func QryUser(c *gin.Context) {
+	type param struct {
+		User_id int `form:"user_id" binding:"required"`
+	}
+
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	user, err := models.QryUser(queryStr.User_id)
+	if err != nil {
+		res.Msg = "更新个人中心信息失败！"
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = user
 	c.JSON(http.StatusOK, res)
 }

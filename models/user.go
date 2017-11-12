@@ -35,7 +35,7 @@ func (u *User) GetUser() (user User, err error) {
 
 // Insert 家长注册
 func (u *User) Insert() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO user(phone_number, unionid, name, role, openid,head_portrait) VALUES (?, ?, ?, ?, ?,?)", u.Phone_number, u.Unionid, u.Name, 0, u.Openid, u.Head_portrait)
+	rs, err := db.SqlDB.Exec("INSERT INTO user(phone_number, unionid, nick_name, role, openid,head_portrait) VALUES (?, ?, ?, ?, ?,?)", u.Phone_number, u.Unionid, u.Name, 0, u.Openid, u.Head_portrait)
 
 	if err != nil {
 		return
@@ -48,11 +48,9 @@ func (u *User) Insert() (id int64, err error) {
 // Update 老师更新
 func (u *User) Update() (id int64, err error) {
 	rs, err := db.SqlDB.Exec("update user set unionid=? ,openid=?", u.Unionid, u.Openid)
-
 	if err != nil {
 		return
 	}
-
 	id, err = rs.LastInsertId()
 	return
 }
@@ -109,4 +107,20 @@ func (uc *Uc_relation) Getchild() (child []Child, err error) {
 func (child *Child) UpChild() (id int64, err error) {
 	id, err = db.Engine.Cols("name", "gender", "birth_date", "head_portrait").Update(child, &Child{Child_id: child.Child_id})
 	return
+}
+
+// UpdateUser 更新个人中心信息
+func (u *User) UpdateUser() (id int64, err error) {
+	rs, err := db.SqlDB.Exec("update user set name=?,gender=?,birth_date=?,residence=? where user_id=?", u.Name, u.Gender, u.Birth_date, u.Residence, u.User_id)
+	if err != nil {
+		return
+	}
+	id, err = rs.LastInsertId()
+	return
+}
+
+// QryUser 获取个人中心信息
+func QryUser(User_id int) (user User, err error) {
+	_, err = db.Engine.Where("User_id=?", User_id).Get(user)
+	return user, err
 }

@@ -88,6 +88,10 @@ func InitRouter() *gin.Engine {
 	router.GET("/GetProvinces", apis.GetProvinces)
 	//获取地级市信息
 	router.GET("/GetCities", apis.GetCities)
+	//更新个人中心信息
+	router.GET("/GetCities", apis.GetCities)
+	//获取个人中心信息
+	router.GET("/GetCities", apis.GetCities)
 
 	return router
 }
