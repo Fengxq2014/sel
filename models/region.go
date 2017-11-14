@@ -5,16 +5,17 @@ import (
 )
 
 type Provinces struct {
-	Id         int `json:"id" form:"id"`
-	Provinceid int `json:"provinceid" form:"provinceid"`
-	Province   int `json:"province" form:"province"`
+	Id         string `json:"-" form:"id"`
+	Provinceid string `json:"value" form:"provinceid"`
+	Province   string `json:"name" form:"province"`
+	Parent int `json:"parent" xorm:"-"`
 }
 
 type Cities struct {
-	Id         int `json:"id" form:"id"`
-	Cityid     int `json:"cityid" form:"cityid"`
-	City       int `json:"city" form:"city"`
-	Provinceid int `json:"provinceid" form:"provinceid"`
+	Id         string `json:"-" form:"id"`
+	Cityid     string `json:"value" form:"cityid"`
+	City       string `json:"name" form:"city"`
+	Provinceid string `json:"parent" form:"provinceid"`
 }
 
 // GetProvinces 获取省、直辖市信息
@@ -24,7 +25,7 @@ func GetProvinces() (provinces []Provinces, err error) {
 }
 
 // GetCities 获取地级市信息
-func GetCities(provinceid int) (cities Cities, err error) {
+func GetCities(provinceid int) (cities []Cities, err error) {
 	err = db.Engine.Where("provinceid=?", provinceid).Find(&cities)
 	return cities, err
 }
