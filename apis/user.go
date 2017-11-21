@@ -246,7 +246,7 @@ func QryUser(c *gin.Context) {
 	res := models.Result{}
 	user, err := models.QryUser(queryStr.User_id)
 	if err != nil {
-		res.Msg = "更新个人中心信息失败！"
+		res.Msg = "获取个人中心信息失败！"
 		c.JSON(http.StatusOK, res)
 		return
 	}

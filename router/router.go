@@ -95,9 +95,9 @@ func InitRouter() *gin.Engine {
 	//获取地级市信息
 	router.GET("/GetCities", apis.GetCities)
 	//更新个人中心信息
-	router.GET("/GetCities1", apis.GetCities)
+	router.GET("/UpdateUser", apis.UpdateUser)
 	//获取个人中心信息
-	router.GET("/GetCities2", apis.GetCities)
+	router.GET("/QryUser", apis.QryUser)
 
 	return router
 }
