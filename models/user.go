@@ -61,6 +61,8 @@ type Child struct {
 	Gender        int       `json:"gender" form:"gender"`
 	Birth_date    time.Time `json:"birth_date" form:"birth_date"`
 	Head_portrait string    `json:"head_portrait" form:"head_portrait"`
+	Relation      int       `json:"relation" form:"relation" xorm:"<-"`
+	User_id       int       `json:"user_id" form:"user_id" xorm:"<-"`
 }
 
 type Uc_relation struct {
@@ -105,7 +107,28 @@ func (uc *Uc_relation) Getchild() (child []Child, err error) {
 
 // UpChild 更新儿童信息
 func (child *Child) UpChild() (id int64, err error) {
-	id, err = db.Engine.Cols("name", "gender", "birth_date", "head_portrait").Update(child, &Child{Child_id: child.Child_id})
+	session := db.Engine.NewSession()
+	defer session.Close()
+	// add Begin() before any action
+	err = session.Begin()
+
+	_, err = session.Cols("name", "gender", "birth_date", "head_portrait").Update(child, &Child{Child_id: child.Child_id})
+	if err != nil {
+		session.Rollback()
+		return 0, err
+	}
+
+	uc_relation := Uc_relation{Relation: child.Relation}
+	_, err = session.Cols("relation").Update(uc_relation, &Uc_relation{Child_id: child.Child_id, User_id: child.User_id})
+	if err != nil {
+		session.Rollback()
+		return 0, err
+	}
+
+	err = session.Commit()
+	if err != nil {
+		return 0, err
+	}
 	return
 }
 
@@ -121,6 +144,18 @@ func (u *User) UpdateUser() (id int64, err error) {
 
 // QryUser 获取个人中心信息
 func QryUser(User_id int) (user User, err error) {
-	_, err = db.Engine.Where("User_id=?", User_id).Get(user)
+	_, err = db.Engine.Where("User_id=?", User_id).Get(&user)
 	return user, err
+}
+
+// QryRelation 获取relation
+func QryRelation(User_id, Child_id int) (uc Uc_relation, err error) {
+	_, err = db.Engine.Where("user_id=? and child_id=?", User_id, Child_id).Get(&uc)
+	return uc, err
+}
+
+// QrySingleChild 查询单个儿童信息
+func QrySingleChild(Child_id, User_id int) (child Child, err error) {
+	_, err = db.Engine.Join("left", "uc_relation", "uc_relation.child_id=child.child_id").Where("child.child_id=? and uc_relation.user_id=?", Child_id, User_id).Get(&child)
+	return child, err
 }

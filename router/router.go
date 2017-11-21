@@ -38,6 +38,12 @@ func InitRouter() *gin.Engine {
 	router.GET("/qryuser", apis.QryUserAPI)
 	//查询儿童信息
 	router.GET("/qrychild", apis.QryUcAPI)
+	//查询单个儿童信息
+	router.GET("/qrysinglechild", apis.QrySingleChild)
+	//查询家长儿童relation
+	router.GET("/QryRelation", apis.QryRelation)
+	//获取relation列表
+	router.GET("/GetRelation", apis.GetRelation)
 	//添加家长儿童关系
 	router.GET("/addchild", apis.AddUcAPI)
 	//获取测评列表

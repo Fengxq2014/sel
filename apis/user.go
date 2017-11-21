@@ -113,7 +113,7 @@ func AddUcAPI(c *gin.Context) {
 	}
 	res := models.Result{}
 	if queryStr.CCID != 0 {
-		child := models.Child{Child_id: queryStr.CCID, Name: queryStr.Name, Gender: queryStr.Ggid, Birth_date: t, Head_portrait: queryStr.Head_portrait}
+		child := models.Child{Child_id: queryStr.CCID, Name: queryStr.Name, Gender: queryStr.Ggid, Birth_date: t, Head_portrait: queryStr.Head_portrait, Relation: queryStr.Re, User_id: queryStr.UID}
 		_, err := child.UpChild()
 		if err != nil {
 			c.Error(errors.New("更新儿童信息失败！"))
@@ -253,5 +253,65 @@ func QryUser(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = user
+	c.JSON(http.StatusOK, res)
+}
+
+// QryRelation 获取relation
+func QryRelation(c *gin.Context) {
+	type param struct {
+		User_id  int `form:"user_id" binding:"required"`
+		Child_id int `form:"child_id" binding:"required"`
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	user, err := models.QryRelation(queryStr.User_id, queryStr.Child_id)
+	if err != nil {
+		res.Msg = "查询家长儿童relation失败！"
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = user
+	c.JSON(http.StatusOK, res)
+}
+
+// 获取relation列表
+func GetRelation(c *gin.Context) {
+	res := models.Result{}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = map[string]string{"9": "未知", "1": "爸爸", "2": "妈妈", "3": "爷爷", "4": "奶奶", "5": "外公", "6": "外婆"}
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+// QrySingleChild 查询单个儿童信息
+func QrySingleChild(c *gin.Context) {
+	type param struct {
+		User_id  int `form:"user_id" binding:"required"`
+		Child_id int `form:"child_id" binding:"required"`
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+
+	res := models.Result{}
+	child, err := models.QrySingleChild(queryStr.Child_id, queryStr.User_id)
+	if err != nil {
+		res.Msg = "查询单个儿童信息失败！"
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	res.Res = 0
+	res.Msg = ""
+	res.Data = child
 	c.JSON(http.StatusOK, res)
 }
