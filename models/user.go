@@ -18,7 +18,7 @@ type User struct {
 	Gender        string `json:"gender" form:"gender"`
 	Birth_date    string `json:"birth_date" form:"birth_date"`
 	Residence     string `json:"residence" form:"residence"`
-	Child_id      string `json:"child_id" form:"child_id" xorm:"<-"`
+	Child_id      string `json:"child_id" form:"child_id" xorm:"-"`
 }
 
 // GetUserByOpenid 通过微信身份标识获取客户信息
@@ -61,8 +61,8 @@ type Child struct {
 	Gender        int       `json:"gender" form:"gender"`
 	Birth_date    time.Time `json:"birth_date" form:"birth_date"`
 	Head_portrait string    `json:"head_portrait" form:"head_portrait"`
-	Relation      int       `json:"relation" form:"relation" xorm:"<-"`
-	User_id       int       `json:"user_id" form:"user_id" xorm:"<-"`
+	Relation      int       `json:"relation" form:"relation" xorm:"-"`
+	User_id       int       `json:"user_id" form:"user_id" xorm:"-"`
 }
 
 type Uc_relation struct {
@@ -134,7 +134,7 @@ func (child *Child) UpChild() (id int64, err error) {
 
 // UpdateUser 更新个人中心信息
 func (u *User) UpdateUser() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("update user set name=?,gender=?,birth_date=?,residence=? where user_id=?", u.Name, u.Gender, u.Birth_date, u.Residence, u.User_id)
+	rs, err := db.SqlDB.Exec("update user set name=?,gender=?,birth_date=?,residence=?,nick_name=? where user_id=?", u.Name, u.Gender, u.Birth_date, u.Residence, u.Nick_name, u.User_id)
 	if err != nil {
 		return
 	}
@@ -144,7 +144,10 @@ func (u *User) UpdateUser() (id int64, err error) {
 
 // QryUser 获取个人中心信息
 func QryUser(User_id int) (user User, err error) {
-	_, err = db.Engine.Where("User_id=?", User_id).Get(&user)
+	bl, err := db.Engine.Where("User_id=?", User_id).Get(&user)
+	if !bl {
+		return user, err
+	}
 	return user, err
 }
 

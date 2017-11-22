@@ -182,6 +182,9 @@ func QryReport(c *gin.Context) {
 	res := models.Result{}
 	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1, TypeId: queryStr.TypeId}
 
+	use := models.User{Openid: queryStr.OpenId}
+	uses, err := use.GetUserByOpenid()
+
 	userEvaluation, err := ue.QryUserEvaluation()
 	if err != nil {
 		c.Error(err)
@@ -209,7 +212,7 @@ func QryReport(c *gin.Context) {
 				return
 			}
 
-			err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198/front/report/"+fileName)
+			err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198/front/report/"+fileName, evaluation.Category, uses.Name)
 			if err != nil {
 				c.Error(err)
 				return
@@ -224,7 +227,7 @@ func QryReport(c *gin.Context) {
 		return
 	}
 
-	err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198"+userEvaluation.Report_result)
+	err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198"+userEvaluation.Report_result, evaluation.Category, uses.Name)
 	if err != nil {
 		c.Error(err)
 		return

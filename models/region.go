@@ -8,7 +8,7 @@ type Provinces struct {
 	Id         string `json:"-" form:"id"`
 	Provinceid string `json:"value" form:"provinceid"`
 	Province   string `json:"name" form:"province"`
-	Parent int `json:"parent" xorm:"-"`
+	Parent     int    `json:"parent" xorm:"-"`
 }
 
 type Cities struct {
@@ -28,4 +28,16 @@ func GetProvinces() (provinces []Provinces, err error) {
 func GetCities(provinceid int) (cities []Cities, err error) {
 	err = db.Engine.Where("provinceid=?", provinceid).Find(&cities)
 	return cities, err
+}
+
+// GetCity 获取地级市信息
+func GetCity(Cityid string) (cities Cities, err error) {
+	_, err = db.Engine.Where("cityid=?", Cityid).Get(&cities)
+	return cities, err
+}
+
+// GetProvinces 获取地级市信息
+func GetProvince(Provinceid string) (provinces Provinces, err error) {
+	_, err = db.Engine.Where("provinceid=?", Provinceid).Get(&provinces)
+	return provinces, err
 }

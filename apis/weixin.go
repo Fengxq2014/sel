@@ -259,7 +259,7 @@ func checkFileIsExist(filename string) bool {
 }
 
 // TemplateMessage 发送模板消息
-func TemplateMessage(openid, url string) (err error) {
+func TemplateMessage(openid, url, category, Name string) (err error) {
 	type TemplateMessage struct {
 		ToUser     string          `json:"touser"`        // 必须, 接受者OpenID
 		TemplateId string          `json:"template_id"`   // 必须, 模版ID
@@ -268,23 +268,23 @@ func TemplateMessage(openid, url string) (err error) {
 	}
 	var jsonBlob = []byte(`{
 		"first": {
-			"value":"恭喜你购买成功！",
+			"value":"您好，有新的测评完成：",
 			"color":"#173177"
 		},
 		"keynote1":{
-			"value":"巧克力",
+			"value":"测评类别:` + category + `",
 			"color":"#173177"
 		},
 		"keynote2": {
-			"value":"39.8元",
+			"value":"姓名:` + Name + `",
 			"color":"#173177"
 		},
 		"keynote3": {
-			"value":"2014年9月22日",
+			"value":"结论请看详情",
 			"color":"#173177"
 		},
 		"remark":{
-			"value":"欢迎再次购买！",
+			"value":"详细测评结果请点击查看。",
 			"color":"#173177"
 		}}`)
 

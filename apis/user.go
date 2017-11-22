@@ -209,6 +209,7 @@ func UpdateUser(c *gin.Context) {
 		Residence  string `form:"residence" binding:"required"`
 		Birth_date string `form:"birth_date" binding:"required"`
 		User_id    int    `form:"user_id" binding:"required"`
+		Nick_name  string `form:"nick_name" binding:"required"`
 	}
 
 	var queryStr param
@@ -217,7 +218,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	p := models.User{Name: queryStr.Name, Gender: queryStr.Gender, Residence: queryStr.Residence, Birth_date: queryStr.Birth_date, User_id: queryStr.User_id}
+	p := models.User{Name: queryStr.Name, Gender: queryStr.Gender, Residence: queryStr.Residence, Birth_date: queryStr.Birth_date, User_id: queryStr.User_id, Nick_name: queryStr.Nick_name}
 
 	id, err := p.UpdateUser()
 	res := models.Result{}
@@ -250,6 +251,9 @@ func QryUser(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 		return
 	}
+	cities, err := models.GetCity(user.Residence)
+	province, err := models.GetProvince(cities.Provinceid)
+	user.Residence = province.Province + "(" + province.Provinceid + ")" + "|" + cities.City + "(" + cities.Cityid + ")"
 	res.Res = 0
 	res.Msg = ""
 	res.Data = user
