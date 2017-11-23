@@ -96,10 +96,11 @@ func (uc *User_course) QryVideo() (user_course User_course, err error) {
 }
 
 type Resource struct {
-	Resource_id int `json:"resource_id" form:"resource_id"`
-	Name        int `json:"name" form:"name"`
-	Type        int `json:"resource_type" form:"resource_type"`
-	Url         int `json:"url" form:"url"`
+	Resource_id int    `json:"resource_id" form:"resource_id"`
+	Name        string `json:"name" form:"name"`
+	Type        int    `json:"type" form:"resource_type"`
+	Url         string `json:"url" form:"url"`
+	Free        int    `json:"free" form:"free" xorm"-"`
 }
 
 type Cresource struct {
@@ -111,7 +112,7 @@ type Cresource struct {
 }
 
 // QryResource 获取课程资源
-func QryResource(course_id int) (resource Resource, err error) {
-	_, err = db.Engine.Join("left", "Cresource", "Cresource.resource_id=resource.resource_id").Where("user.openid = ?", course_id).Get(&resource)
+func QryResource(course_id int) (resource []Resource, err error) {
+	err = db.Engine.Join("left", "cresource", "cresource.resource_id=resource.resource_id").Where("cresource.course_id = ?", course_id).Find(&resource)
 	return resource, err
 }

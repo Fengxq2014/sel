@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin/binding"
 
+	"github.com/Fengxq2014/sel/conf"
 	"github.com/Fengxq2014/sel/models"
 	"github.com/Fengxq2014/sel/tool"
 	"github.com/gin-gonic/gin"
@@ -212,29 +213,29 @@ func QryReport(c *gin.Context) {
 				return
 			}
 
-			err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198/front/report/"+fileName, evaluation.Category, uses.Name)
+			err = TemplateMessage(queryStr.OpenId, conf.Config.Host+"/front/report/"+fileName, evaluation.Category, uses.Name)
 			if err != nil {
 				c.Error(err)
 				return
 			}
 			res.Res = 0
 			res.Msg = ""
-			//res.Data = map[string]string{"pdf": "/front/report/" + fileName, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+			res.Data = userEvaluation
 			c.JSON(http.StatusOK, res)
 			return
 		}
 		c.Error(errors.New("生成报告失败"))
 		return
 	}
-
-	err = TemplateMessage(queryStr.OpenId, "http://106.14.195.198"+userEvaluation.Report_result, evaluation.Category, uses.Name)
-	if err != nil {
-		c.Error(err)
-		return
-	}
+	userEvaluation.Report_result = conf.Config.Host + userEvaluation.Report_result
+	// err = TemplateMessage(queryStr.OpenId, "http://sel.bless-info.com"+userEvaluation.Report_result, evaluation.Category, uses.Name)
+	// if err != nil {
+	// 	c.Error(err)
+	// 	return
+	// }
 	res.Res = 0
 	res.Msg = ""
-	//res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Text_result}
+	res.Data = userEvaluation
 	c.JSON(http.StatusOK, res)
 	return
 }
