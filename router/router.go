@@ -98,6 +98,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/UpdateUser", apis.UpdateUser)
 	//获取个人中心信息
 	router.GET("/QryUser", apis.QryUser)
+	// QryUserCourse 查看用户单个课程
+	router.GET("/QryUserCourse", apis.QryUserCourse)
 
 	return router
 }

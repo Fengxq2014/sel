@@ -169,6 +169,7 @@ func QryMyEvaluation(c *gin.Context) {
 // QryReport 生成报告
 func QryReport(c *gin.Context) {
 	type param struct {
+		UEID   int    `form:"user_evaluation_id"`               //用户测评ID
 		EID    int    `form:"evaluation_id" binding:"required"` //测评ID
 		UID    int    `form:"user_id" binding:"required"`       //用户ID
 		CID    int    `form:"child_id" binding:"required"`      //儿童ID
@@ -181,7 +182,7 @@ func QryReport(c *gin.Context) {
 		return
 	}
 	res := models.Result{}
-	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1, TypeId: queryStr.TypeId}
+	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1, TypeId: queryStr.TypeId, User_evaluation_id: queryStr.UEID}
 
 	use := models.User{Openid: queryStr.OpenId}
 	uses, err := use.GetUserByOpenid()
@@ -376,6 +377,31 @@ func QrySingleEvaluation(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = evaluation
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+// QryEvaluationByChildId 查询所属儿童测评列表
+func QryEvaluationByChildId(c *gin.Context) {
+	type param struct {
+		User_id  int `form:"user_id" binding:"required"`
+		Child_id int `form:"child_id" binding:"required"`
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	ue, err := models.QryEvaluationByChildId(queryStr.User_id, queryStr.Child_id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = ue
 	c.JSON(http.StatusOK, res)
 	return
 }

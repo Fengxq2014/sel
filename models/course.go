@@ -116,3 +116,9 @@ func QryResource(course_id int) (resource []Resource, err error) {
 	err = db.Engine.Join("left", "cresource", "cresource.resource_id=resource.resource_id").Where("cresource.course_id = ?", course_id).Find(&resource)
 	return resource, err
 }
+
+// QryUserCourse 查看用户单个课程
+func QryUserCourse(course_id, user_id int) (course User_course, err error) {
+	_, err = db.Engine.Where("course_id=? and user_id=?", course_id, user_id).Get(&course)
+	return course, err
+}

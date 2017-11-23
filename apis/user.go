@@ -253,7 +253,7 @@ func QryUser(c *gin.Context) {
 	}
 	cities, err := models.GetCity(user.Residence)
 	province, err := models.GetProvince(cities.Provinceid)
-	user.Residence = province.Province + "(" + province.Provinceid + ")" + "|" + cities.City + "(" + cities.Cityid + ")"
+	user.Residence = province.Provinceid + "|" + cities.Cityid
 	res.Res = 0
 	res.Msg = ""
 	res.Data = user

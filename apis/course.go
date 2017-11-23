@@ -280,3 +280,28 @@ func GetResource(c *gin.Context) {
 	res.Data = resource
 	c.JSON(http.StatusOK, res)
 }
+
+// QryUserCourse 查看用户单个课程
+func QryUserCourse(c *gin.Context) {
+	type param struct {
+		CID int `form:"course_id" binding:"required"` //课程ID
+		UID int `form:"user_id" binding:"required"`   //用户ID
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+	course, err := models.QryUserCourse(queryStr.CID, queryStr.UID)
+
+	if err != nil {
+		c.Error(errors.New("获取课程资源失败"))
+		return
+	}
+
+	res.Res = 0
+	res.Msg = ""
+	res.Data = course.User_course_id
+	c.JSON(http.StatusOK, res)
+}

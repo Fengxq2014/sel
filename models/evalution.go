@@ -219,7 +219,11 @@ func (ue *User_evaluation) QryUserEvaluation() (result User_evaluation, err erro
 		_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id!=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
 		return
 	}
-	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
+	if ue.User_evaluation_id == 0 {
+		_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id=-1", ue.Evaluation_id, ue.User_id, ue.Child_id).Get(&result)
+		return
+	}
+	_, err = db.Engine.Where("evaluation_id=? and user_id=? and child_id=? and current_question_id=-1 and user_evaluation_id=?", ue.Evaluation_id, ue.User_id, ue.Child_id, ue.User_evaluation_id).Get(&result)
 	return
 }
 
@@ -232,5 +236,11 @@ func (ue *User_evaluation) QryEvaluation() (result User_evaluation, err error) {
 // QrySingleEvaluation 根据evaluation_id查询单个测评
 func QryEvaluation(evaluation_id int) (result Evaluation, err error) {
 	_, err = db.Engine.Where("evaluation_id=?", evaluation_id).Get(&result)
+	return
+}
+
+// QryEvaluationByChildId 查询所属儿童测评列表
+func QryEvaluationByChildId(user_id, child_id int) (Result []User_evaluation, err error) {
+	err = db.Engine.Where("user_id=? and child_id=?", user_id, child_id).Find(&Result)
 	return
 }
