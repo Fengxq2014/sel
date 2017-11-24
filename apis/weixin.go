@@ -266,27 +266,30 @@ func TemplateMessage(openid, url, category, Name string) (err error) {
 		URL        string          `json:"url,omitempty"` // 可选, 用户点击后跳转的URL, 该URL必须处于开发者在公众平台网站中设置的域中
 		Data       json.RawMessage `json:"data"`          // 必须, 模板数据, JSON 格式的 []byte, 满足特定的模板需求
 	}
-	var jsonBlob = []byte(`{
+	json := `{
 		"first": {
-			"value":"您好，有新的测评完成：",
+			"value":"您好，您有新的测评完成：",
 			"color":"#173177"
 		},
-		"keynote1":{
-			"value":"测评类别:` + category + `",
+		"keyword1":{
+			"value":"` + category + `",
 			"color":"#173177"
 		},
-		"keynote2": {
-			"value":"姓名:` + Name + `",
+		"keyword2": {
+			"value":"` + Name + `",
 			"color":"#173177"
 		},
-		"keynote3": {
-			"value":"结论请看详情",
+		"keyword3": {
+			"value":"",
 			"color":"#173177"
 		},
 		"remark":{
 			"value":"详细测评结果请点击查看。",
 			"color":"#173177"
-		}}`)
+		}}`
+
+	tool.Info("json:" + json)
+	var jsonBlob = []byte(json)
 
 	msg := TemplateMessage{ToUser: openid, TemplateId: conf.Config.Template_id, URL: url, Data: jsonBlob}
 	msgid, err := template.Send(wechatClient, msg)
