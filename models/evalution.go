@@ -239,8 +239,20 @@ func QryEvaluation(evaluation_id int) (result Evaluation, err error) {
 	return
 }
 
-// QryEvaluationByChildId 查询所属儿童测评列表
-func QryEvaluationByChildId(user_id, child_id int) (Result []User_evaluation, err error) {
-	err = db.Engine.Where("user_id=? and child_id=?", user_id, child_id).Find(&Result)
-	return
+// GetMyEvaluationByChildId 查询所属儿童测评列表
+func QryEvaluationByChildId(user_id, child_id int) (evaluations []Evaluation, err error) {
+	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=? and b.child_id=?", user_id, child_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var evaluation Evaluation
+		err = rows.Scan(&evaluation.Evaluation_id, &evaluation.Name, &evaluation.Category, &evaluation.User_access, &evaluation.Abstract, &evaluation.Details, &evaluation.Price, &evaluation.Page_number, &evaluation.Person_count, &evaluation.Picture, &evaluation.Sample_report, &evaluation.Key_name, &evaluation.User_evaluation_id, &evaluation.Current_question_id, &evaluation.Evaluation_time, &evaluation.Child_id)
+		if err != nil {
+			return nil, err
+		}
+		evaluations = append(evaluations, evaluation)
+	}
+	return evaluations, err
 }

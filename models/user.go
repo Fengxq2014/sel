@@ -159,6 +159,16 @@ func QryRelation(User_id, Child_id int) (uc Uc_relation, err error) {
 
 // QrySingleChild 查询单个儿童信息
 func QrySingleChild(Child_id, User_id int) (child Child, err error) {
-	_, err = db.Engine.Join("left", "uc_relation", "uc_relation.child_id=child.child_id").Where("child.child_id=? and uc_relation.user_id=?", Child_id, User_id).Get(&child)
+	rows, err := db.SqlDB.Query("SELECT child.birth_date,child.child_id,child.gender,child.head_portrait,child.name,uc_relation.user_id,uc_relation.relation from child LEFT JOIN uc_relation on uc_relation.child_id=child.child_id	where child.child_id=? and uc_relation.user_id=?", Child_id, User_id)
+	if err != nil {
+		return child, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&child.Birth_date, &child.Child_id, &child.Gender, &child.Head_portrait, &child.Name, &child.Relation, &child.User_id)
+		if err != nil {
+			return child, err
+		}
+	}
 	return child, err
 }
