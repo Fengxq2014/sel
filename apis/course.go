@@ -98,9 +98,18 @@ func checkExistCategorys(list *[]courseContain, category string) int {
 
 // GetVideo 获取视频播放地址
 func GetVideo(c *gin.Context) {
+	type param struct {
+		Media   string `form:"media" binding:"required"`    //视频ID
+		Formats string `form:"formmats" binding:"required"` //视频流格式，多个用逗号分隔，支持格式mp4,m3u8,mp3
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
 	res := models.Result{}
-	Media := c.Query("media")
-	playAuth, err := vod.NewAliyunVod(conf.Config.Access_key_id, conf.Config.Access_secret).GetVideoPlayAuth(Media)
+
+	playInfo, err := vod.NewAliyunVod(conf.Config.Access_key_id, conf.Config.Access_secret).GetPlayInfo(queryStr.Media, queryStr.Formats, "")
 	if err != nil {
 		res.Res = 1
 		res.Msg = err.Error()
@@ -110,7 +119,7 @@ func GetVideo(c *gin.Context) {
 	}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = map[string]string{"playAuth": playAuth.PlayAuth, "coverurl": playAuth.VideoMeta.CoverURL}
+	res.Data = map[string]string{"playAuth": playInfo.PlayInfoList.PlayInfo[0].PlayURL, "coverurl": playInfo.VideoBase.CoverURL}
 
 	c.JSON(http.StatusOK, res)
 }
