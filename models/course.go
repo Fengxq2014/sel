@@ -101,6 +101,7 @@ type Resource struct {
 	Type        int    `json:"type" form:"resource_type"`
 	Url         string `json:"url" form:"url"`
 	Free        int    `json:"free" form:"free" xorm"-"`
+	Index       int    `json:"index" form:"index" xorm"-"`
 }
 
 type Cresource struct {
