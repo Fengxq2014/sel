@@ -180,7 +180,7 @@ func maxInt(x, y int) int {
 
 // GetMyEvaluation 获取本人测评
 func GetMyEvaluation(user_id int) (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=?", user_id)
+	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=? ORDER BY b.evaluation_time DESC", user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func QryEvaluation(evaluation_id int) (result Evaluation, err error) {
 
 // GetMyEvaluationByChildId 查询所属儿童测评列表
 func QryEvaluationByChildId(user_id, child_id int) (evaluations []Evaluation, err error) {
-	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=? and b.child_id=?", user_id, child_id)
+	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=? and b.child_id=? ORDER BY b.evaluation_time DESC", user_id, child_id)
 	if err != nil {
 		return nil, err
 	}

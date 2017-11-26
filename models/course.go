@@ -67,7 +67,7 @@ func (uc *User_course) AddUsercourse() (id int64, err error) {
 
 // GetMyCourse 获取课程列表
 func GetMyCourse(user_id int) (courses []Course, err error) {
-	rows, err := db.SqlDB.Query("SELECT * FROM course where course_id in (select course_id from user_course where user_id=?)", user_id)
+	rows, err := db.SqlDB.Query("SELECT * FROM course where course_id in (select course_id from user_course where user_id=? ORDER BY course_time DESC)", user_id)
 	if err != nil {
 		return nil, err
 	}
