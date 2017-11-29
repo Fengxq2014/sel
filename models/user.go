@@ -165,7 +165,7 @@ func QrySingleChild(Child_id, User_id int) (child Child, err error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&child.Birth_date, &child.Child_id, &child.Gender, &child.Head_portrait, &child.Name, &child.Relation, &child.User_id)
+		err = rows.Scan(&child.Birth_date, &child.Child_id, &child.Gender, &child.Head_portrait, &child.Name, &child.User_id, &child.Relation)
 		if err != nil {
 			return child, err
 		}

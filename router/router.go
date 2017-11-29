@@ -102,6 +102,8 @@ func InitRouter() *gin.Engine {
 	router.GET("/QryUserCourse", apis.QryUserCourse)
 	//查询所属儿童已完成测评列表
 	router.GET("/QryEvaluationByChildId", apis.QryEvaluationByChildId)
+	//查询测评是否购买
+	router.GET("/QryEvaluationGM", apis.QryEvaluationGM)
 	return router
 }
 

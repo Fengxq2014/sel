@@ -252,6 +252,8 @@ func QryReport(c *gin.Context) {
 
 func runPrint(cmd string, args ...string) bool {
 	os.Setenv("PATH", fmt.Sprintf("%s%c%s", "c:/sel/selreport", os.PathListSeparator, os.Getenv("PATH")))
+	tool.Debug("调用report:", cmd)
+	tool.Debug(args)
 	ecmd := exec.Command(cmd, args...)
 	var errorout bytes.Buffer
 	var out bytes.Buffer
@@ -337,8 +339,10 @@ func UpPayEvalution(c *gin.Context) {
 // QryReports 查看报告
 func QryReports(c *gin.Context) {
 	type param struct {
-		UEID int `form:"user_evaluation_id" binding:"required"` //用户测评ID
-		EID  int `form:"evaluation_id" binding:"required"`      //测评ID
+		UEID   int    `form:"user_evaluation_id" binding:"required"` //用户测评ID
+		EID    int    `form:"evaluation_id" binding:"required"`      //测评ID
+		OpenId string `form:"openid" binding:"required"`             //用户openid
+		UID    int    `form:"user_id" binding:"required"`            //用户ID
 	}
 	var queryStr param
 	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
@@ -358,9 +362,17 @@ func QryReports(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+	use := models.User{Openid: queryStr.OpenId}
+	uses, err := use.GetUserByOpenid()
+
+	err = TemplateMessage(queryStr.OpenId, conf.Config.Host+userEvaluation.Report_result, evaluation.Category, uses.Name)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	res.Res = 0
 	res.Msg = ""
-	res.Data = map[string]string{"pdf": userEvaluation.Report_result, "details": evaluation.Details, "name": evaluation.Name, "reporttime": userEvaluation.Evaluation_time.Format("20060102150405"), "textResult": userEvaluation.Data_result}
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -382,7 +394,7 @@ func QrySingleEvaluation(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-
+	evaluation.MaxIndex, err = models.QryQuestionNum(queryStr.EID)
 	res.Res = 0
 	res.Msg = ""
 	res.Data = evaluation
@@ -411,6 +423,33 @@ func QryEvaluationByChildId(c *gin.Context) {
 	res.Res = 0
 	res.Msg = ""
 	res.Data = ue
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+// QryEvaluationGM 查询测评是否购买
+func QryEvaluationGM(c *gin.Context) {
+	type param struct {
+		EID int `form:"evaluation_id" binding:"required"`
+		CID int `form:"user_id" binding:"required"`
+	}
+	var queryStr param
+	if c.ShouldBindWith(&queryStr, binding.Query) != nil {
+		c.Error(errors.New("参数为空"))
+		return
+	}
+	res := models.Result{}
+
+	ue, err := models.QryEvaluationGM(queryStr.EID, queryStr.CID)
+	if err != nil || ue.User_evaluation_id == 0 {
+		res.Res = 1
+		res.Msg = "未购买"
+		c.JSON(http.StatusOK, res)
+		return
+	}
+
+	res.Res = 0
+	res.Msg = "已购买"
 	c.JSON(http.StatusOK, res)
 	return
 }

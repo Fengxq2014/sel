@@ -15,7 +15,7 @@ type Evaluation struct {
 	User_access         int       `json:"user_access" form:"user_access"`
 	Abstract            string    `json:"abstract" form:"abstract"`
 	Details             string    `json:"details" form:"details"`
-	Price               float64   `json:"price" form:"price"`
+	Price               string    `json:"price" form:"price"`
 	Page_number         int       `json:"page_number" form:"page_number"`
 	Person_count        int       `json:"person_count" form:"person_count"`
 	Picture             string    `json:"picture" form:"picture"`
@@ -239,6 +239,16 @@ func QryEvaluation(evaluation_id int) (result Evaluation, err error) {
 	return
 }
 
+// QryQuestionNum 查询题目数量
+func QryQuestionNum(evaluation_id int) (num int64, err error) {
+	question := new(Question)
+	num, err = db.Engine.Where("evaluation_id=?", evaluation_id).Count(question)
+	if err != nil {
+		return num, err
+	}
+	return
+}
+
 // GetMyEvaluationByChildId 查询所属儿童测评列表
 func QryEvaluationByChildId(user_id, child_id int) (evaluations []Evaluation, err error) {
 	rows, err := db.SqlDB.Query("SELECT a.*,b.user_evaluation_id,b.current_question_id,b.evaluation_time,b.child_id FROM evaluation a left join user_evaluation b on b.evaluation_id=a.evaluation_id where b.user_id=? and b.child_id=? ORDER BY b.evaluation_time DESC", user_id, child_id)
@@ -255,4 +265,10 @@ func QryEvaluationByChildId(user_id, child_id int) (evaluations []Evaluation, er
 		evaluations = append(evaluations, evaluation)
 	}
 	return evaluations, err
+}
+
+// QryEvaluationGM 查询测评是否购买
+func QryEvaluationGM(evaluation_id, user_id int) (result User_evaluation, err error) {
+	_, err = db.Engine.Where("evaluation_id=? and user_id=?", evaluation_id, user_id).Get(&result)
+	return
 }
