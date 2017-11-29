@@ -214,7 +214,7 @@ func QryReport(c *gin.Context) {
 				return
 			}
 
-			err = TemplateMessage(queryStr.OpenId, conf.Config.Host+"/front/report/"+fileName, evaluation.Category, uses.Name)
+			err = TemplateMessage(queryStr.OpenId, conf.Config.Host+"/front/report/"+fileName, evaluation.Category, uses.Nick_name)
 			if err != nil {
 				c.Error(err)
 				return
@@ -238,11 +238,6 @@ func QryReport(c *gin.Context) {
 		return
 	}
 	userEvaluation.Report_result = conf.Config.Host + userEvaluation.Report_result
-	// err = TemplateMessage(queryStr.OpenId, "http://sel.bless-info.com"+userEvaluation.Report_result, evaluation.Category, uses.Name)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
 	res.Res = 0
 	res.Msg = ""
 	res.Data = userEvaluation
