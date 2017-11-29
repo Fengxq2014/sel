@@ -201,6 +201,7 @@ func QryReport(c *gin.Context) {
 		idstring := strconv.Itoa(userEvaluation.User_evaluation_id)
 		timetemp := time.Now().Format("20060102150405")
 		fileName := evaluation.Key_name + "_" + idstring + "_" + timetemp + ".pdf"
+		tool.Debug("User_evaluation_id" + idstring)
 		pdf := runPrint("selreport", idstring+","+fileName)
 		if pdf {
 			err := models.UpPersonCount(queryStr.EID)
