@@ -209,6 +209,7 @@ func QryReport(c *gin.Context) {
 				c.Error(err)
 				return
 			}
+			ue.User_evaluation_id = userEvaluation.User_evaluation_id
 			_, err = ue.UpdateEvaluation()
 			if err != nil {
 				c.Error(err)
