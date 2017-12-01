@@ -268,23 +268,23 @@ func TemplateMessage(openid, url, evaluationName, evaluationTime, nick_name, chi
 	}
 	json := `{
 		"first": {
-			"value":"您好，` + nick_name + `，您有一份完整测评报告已生成。",
-			"color":"#89bd41"
+			"value":"您好，` + nick_name + `，您有一份完整测评报告已生成。\r\n",
+			"color":""
 		},
 		"keyword1":{
 			"value":"` + evaluationName + `",
-			"color":"#89bd41"
+			"color":""
 		},
 		"keyword2": {
 			"value":"` + childName + `",
-			"color":"#89bd41"
+			"color":""
 		},
 		"keyword3": {
-			"value":"` + evaluationTime + `",
-			"color":"#89bd41"
+			"value":"` + evaluationTime + `\r\n",
+			"color":""
 		},
 		"remark":{
-			"value":"点击查看完整测评报告。您可以转发本消息，与家人分享报告。",
+			"value":"点击查看完整测评报告。\r\n您可以转发本消息，与家人分享报告。",
 			"color":"#89bd41"
 		}}`
 
