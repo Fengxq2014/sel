@@ -184,8 +184,8 @@ func QryReport(c *gin.Context) {
 	res := models.Result{}
 	ue := models.User_evaluation{Evaluation_id: queryStr.EID, User_id: queryStr.UID, Child_id: queryStr.CID, Current_question_id: -1, TypeId: queryStr.TypeId, User_evaluation_id: queryStr.UEID}
 
-	use := models.User{Openid: queryStr.OpenId}
-	uses, err := use.GetUserByOpenid()
+	// use := models.User{Openid: queryStr.OpenId}
+	// uses, err := use.GetUserByOpenid()
 
 	userEvaluation, err := ue.QryUserEvaluation()
 	if err != nil {
@@ -216,14 +216,14 @@ func QryReport(c *gin.Context) {
 				return
 			}
 
-			err = TemplateMessage(queryStr.OpenId, conf.Config.Host+"/front/report/"+fileName, evaluation.Category, uses.Nick_name)
-			if err != nil {
-				c.Error(err)
-				return
-			}
+			// err = TemplateMessage(queryStr.OpenId, conf.Config.Host+"/front/report/"+fileName, evaluation.Category, uses.Nick_name)
+			// if err != nil {
+			// 	c.Error(err)
+			// 	return
+			// }
 
 			ue.TypeId = "1"
-			ue.User_evaluation_id = userEvaluation.User_evaluation_id
+			// ue.User_evaluation_id = userEvaluation.User_evaluation_id
 			userEvaluation, err = ue.QryUserEvaluation()
 			if err != nil {
 				c.Error(err)
