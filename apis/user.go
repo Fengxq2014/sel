@@ -295,7 +295,7 @@ func GetRelation(c *gin.Context) {
 	res := models.Result{}
 	res.Res = 0
 	res.Msg = ""
-	res.Data = map[string]string{"9": "其它", "1": "爸爸", "2": "妈妈", "3": "爷爷", "4": "奶奶", "5": "外公", "6": "外婆"}
+	res.Data = map[string]string{"1": "其它", "2": "爸爸", "3": "妈妈", "4": "爷爷", "5": "奶奶", "6": "外公", "7": "外婆"}
 	c.JSON(http.StatusOK, res)
 	return
 }
