@@ -259,7 +259,7 @@ func checkFileIsExist(filename string) bool {
 }
 
 // TemplateMessage 发送模板消息
-func TemplateMessage(openid, url, category, Name string) (err error) {
+func TemplateMessage(openid, url, evaluationName, evaluationTime, nick_name, childName string) (err error) {
 	type TemplateMessage struct {
 		ToUser     string          `json:"touser"`        // 必须, 接受者OpenID
 		TemplateId string          `json:"template_id"`   // 必须, 模版ID
@@ -268,24 +268,24 @@ func TemplateMessage(openid, url, category, Name string) (err error) {
 	}
 	json := `{
 		"first": {
-			"value":"您好，您有新的测评完成：",
-			"color":"#173177"
+			"value":"您好，` + nick_name + `，您有一份完整测评报告已生成。",
+			"color":"#89bd41"
 		},
 		"keyword1":{
-			"value":"` + category + `",
-			"color":"#173177"
+			"value":"` + evaluationName + `",
+			"color":"#89bd41"
 		},
 		"keyword2": {
-			"value":"` + Name + `",
-			"color":"#173177"
+			"value":"` + childName + `",
+			"color":"#89bd41"
 		},
 		"keyword3": {
-			"value":"",
-			"color":"#173177"
+			"value":"` + evaluationTime + `",
+			"color":"#89bd41"
 		},
 		"remark":{
-			"value":"详细测评结果请点击查看。",
-			"color":"#173177"
+			"value":"点击查看完整测评报告。您可以转发本消息，与家人分享报告。",
+			"color":"#89bd41"
 		}}`
 
 	tool.Info("json:" + json)

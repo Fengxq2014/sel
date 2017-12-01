@@ -105,6 +105,12 @@ func (uc *Uc_relation) Getchild() (child []Child, err error) {
 	return child, err
 }
 
+// Getchild 查询儿童信息
+func GetChildById(child_id int) (child Child, err error) {
+	_, err = db.Engine.Where("child_id=?", child_id).Get(&child)
+	return child, err
+}
+
 // UpChild 更新儿童信息
 func (child *Child) UpChild() (id int64, err error) {
 	session := db.Engine.NewSession()

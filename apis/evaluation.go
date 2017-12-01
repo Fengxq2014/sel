@@ -354,15 +354,18 @@ func QryReports(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+
 	evaluation, err := models.QryEvaluation(ue.Evaluation_id)
 	if err != nil {
 		c.Error(err)
 		return
 	}
+
 	use := models.User{Openid: queryStr.OpenId}
 	uses, err := use.GetUserByOpenid()
 
-	err = TemplateMessage(queryStr.OpenId, conf.Config.Host+userEvaluation.Report_result, evaluation.Category, uses.Name)
+	childInfo, err := models.GetChildById(userEvaluation.Child_id)
+	err = TemplateMessage(queryStr.OpenId, conf.Config.Host+userEvaluation.Report_result, evaluation.Name, userEvaluation.Evaluation_time.Format("2006-01-02 15:04:05"), uses.Nick_name, childInfo.Name)
 	if err != nil {
 		c.Error(err)
 		return
